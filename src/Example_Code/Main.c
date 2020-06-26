@@ -61,7 +61,8 @@ void BreakDeal(int sig)
 
 
 int main(int argc, char* argv[])
-{
+{	
+    int display_offset=5;
     int date=atoi(argv[1]);
     int lanip=atoi(argv[2]);
     int cputemp=atoi(argv[3]);
@@ -197,16 +198,16 @@ int main(int argc, char* argv[])
 
         setTextSize(1);
         setTextColor(WHITE); 
-        setCursor(0,0);   
+        //setCursor(0,0);   
 
         // info display
 	   for(int i = 1; i < time; i++){
-            setCursor(0,0); 
-        	if(date) testdate();
-            if(lanip) testlanip();
-            if(cpufreq) testcpufreq();
-            if(cputemp) testcputemp();
-            if(netspeed) testnetspeed();
+
+            if(date) {setCursor(display_offset, 8*(date-1)); testdate();}
+            if(lanip) {setCursor(display_offset, 8*(date+lanip-1)); testlanip();}
+            if(cpufreq) {setCursor(display_offset, 8*(date+lanip+cpufreq-1)); testcpufreq();}
+            if(cputemp) {setCursor(display_offset, 8*(date+lanip+cpufreq+cputemp-1));testcputemp();}
+            if(netspeed) {setCursor(display_offset, 8*(date+lanip+cpufreq+cputemp+netspeed-1));testnetspeed();}
         	Display();
         	usleep(1000000);
         	clearDisplay();

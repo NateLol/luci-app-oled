@@ -414,7 +414,7 @@ void testdate()
     uint8_t timebuff[TIMESIZE];
     curtime = time(NULL);
     time(&rawtime);
-    strftime(timebuff,80,"%Y-%m-%d_%w %H:%M:%S",localtime(&rawtime));
+    strftime(timebuff,80,"%Y-%m-%d %H:%M:%S",localtime(&rawtime));
     sprintf(buf,"%s",timebuff);
     print_strln(buf);
 
@@ -441,7 +441,7 @@ void testcputemp()
     {
         fgets(content_buff,TEMPSIZE,fp);
         fclose(fp);
-        sprintf(buf,"CPU temp:%.2f C",atoi(content_buff)/100.0);
+        sprintf(buf,"CPU TEMP:%.2f C",atoi(content_buff)/100.0);
         print_strln(buf);
     }
 
@@ -454,7 +454,7 @@ void testcpufreq()
     {
         fgets(content_buff,FREQSIZE,fp);
         fclose(fp);
-        sprintf(buf,"CPU freq:%d Mhz ",atoi(content_buff)/1000);
+        sprintf(buf,"CPU FREQ:%d Mhz ",atoi(content_buff)/1000);
         print_strln(buf);
     }
 
@@ -466,7 +466,7 @@ void testnetspeed()
     {
         fgets(content_buff,FREQSIZE,fp);
         fclose(fp);
-        sprintf(buf,"Up:%d M/s, Down: M/s",atoi(content_buff)/1000);
+        sprintf(buf,"U:%d M/s, D: M/s",atoi(content_buff)/1000);
         print_strln(buf);
     }
 

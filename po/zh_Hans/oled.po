@@ -5,7 +5,7 @@ msgstr "Content-Type: text/plain; charset=UTF-8"
 msgid ""
 "A LuCI app that helps you config your oled display (SSD1306, 0.91', 128X32) "
 "with screensavers! <br /> <br /> Any issues, please go to:"
-msgstr "这是一款支持在ssd1306,0.91寸，128x32像素的oled显示屏上显示你要的信息，包含屏保。<br /> <br />任何问题请到："
+msgstr "这是一款支持在ssd1306，0.91寸，128x32像素的oled显示屏上显示你要的信息，包含屏保的程序。<br /> <br />任何问题请到："
 
 #: ../../package/new/luci-app-oled/luasrc/model/cbi/oled/setting.lua:24
 msgid "CPU frequency"
@@ -28,9 +28,12 @@ msgid "Display miniature bitmap"
 msgstr "小图案"
 
 #: ../../package/new/luci-app-oled/luasrc/model/cbi/oled/setting.lua:28
-msgid "Display time"
-msgstr "时间"
+msgid "Display interval(s)"
+msgstr "信息显示间隔（秒）"
 
+#: ../../package/new/luci-app-oled/luasrc/model/cbi/oled/setting.lua:28
+msgid "Screensaver will activate in set seconds"
+msgstr "屏保每间隔设置的时间运行一次"
 #: ../../package/new/luci-app-oled/luasrc/model/cbi/oled/setting.lua:32
 msgid "Draw Many Lines"
 msgstr "直线"
@@ -76,8 +79,8 @@ msgid "Fill the Round Rectangles"
 msgstr "方形填充"
 
 #: ../../package/new/luci-app-oled/luasrc/model/cbi/oled/setting.lua:18
-msgid "Format YYYY-MM-DD_WEEK HH:MM:SS"
-msgstr "日期格式 YYYY-MM-DD_WEEK HH:MM:SS"
+msgid "Format YYYY-MM-DD HH:MM:SS"
+msgstr "日期格式 YYYY-MM-DD HH:MM:SS"
 
 #: ../../package/new/luci-app-oled/luasrc/model/cbi/oled/setting.lua:20
 msgid "IP"

@@ -4,7 +4,7 @@ m = Map("oled", translate("OLED"), translate("A LuCI app that helps you config y
 
 m:section(SimpleSection).template="oled/status"
 
-s = m:section(TypedSection, "oled", translate("OLED"))
+s = m:section(TypedSection, "oled", translate(""))
 s.anonymous=true
 s.addremove=false
 
@@ -15,7 +15,7 @@ s:tab("screensaver", translate("screensaver"))
 o = s:taboption("info", Flag, "enable", translate("Enable"))
 o.default=0
 --informtion  options----
-o = s:taboption("info", Flag, "date", translate("Date"), translate('Format YYYY-MM-DD_WEEK HH:MM:SS'))
+o = s:taboption("info", Flag, "date", translate("Date"), translate('Format YYYY-MM-DD HH:MM:SS'))
 o.default=0
 o = s:taboption("info", Flag, "lanip", translate("IP"), translate("LAN IP address"))
 o.default=0
@@ -25,7 +25,7 @@ o = s:taboption("info", Flag, "cpufreq", translate("CPU frequency"))
 o.default=0
 o = s:taboption("info", Flag, "netspeed", translate("Network speed"))
 o.default=0
-o = s:taboption("info", Value, "time", translate("Display time"))
+o = s:taboption("info", Value, "time", translate("Display interval(s)"), translate('Screensaver will activate in set seconds'))
 o.default=0
 
 --screensaver options--
