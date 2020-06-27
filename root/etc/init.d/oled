@@ -8,6 +8,12 @@ start() {
 	if [ $enabled -eq 0 ]; then
 		exit 0
 	fi
+	#crontab daemon
+	cat /etc/crontabs/root | grep oled > /dev/null
+	if [ $? -eq 1 ]; then
+		echo "*/15 * * * * /etc/init.d/oled restart" >> /etc/crontabs/root	
+	fi
+
 	date=$(uci get oled.@oled[0].date)
 	lanip=$(uci get oled.@oled[0].lanip)
 	cputemp=$(uci get oled.@oled[0].cputemp)
@@ -24,9 +30,11 @@ start() {
 	filltriangle=$(uci get oled.@oled[0].filltriangle)
 	displaybitmap=$(uci get oled.@oled[0].displaybitmap)
 	displayinvertnormal=$(uci get oled.@oled[0].displayinvertnormal)
-	drawbitmap=$(uci get oled.@oled[0].drawbitmap)
 	drawbitmapeg=$(uci get oled.@oled[0].drawbitmapeg)
-	nohup ${PROG} ${date} ${lanip} ${cputemp} ${cpufreq} ${netspeed} ${time} ${drawline} ${drawrect} ${fillrect} ${drawcircle} ${drawroundrect} ${fillroundrect} ${drawtriangle} ${filltriangle} ${displaybitmap} ${displayinvertnormal} ${drawbitmap}  ${drawbitmapeg} >/dev/null 2>&1 &
+	scroll=$(uci get oled.@oled[0].scroll)
+	text=$(uci get oled.@oled[0].text)
+	netsource=$(uci get oled.@oled[0].netsource)
+	nohup ${PROG} ${date} ${lanip} ${cputemp} ${cpufreq} ${netspeed} ${time} ${drawline} ${drawrect} ${fillrect} ${drawcircle} ${drawroundrect} ${fillroundrect} ${drawtriangle} ${filltriangle} ${displaybitmap} ${displayinvertnormal}  ${drawbitmapeg} ${scroll} "${text}" "${netsource}" > /dev/null 2>&1 &
 }
 
  

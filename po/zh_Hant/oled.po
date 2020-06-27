@@ -15,6 +15,15 @@ msgstr "CPU頻率"
 msgid "CPU temperature"
 msgstr "CPU溫度"
 
+msgid "Scroll Text"
+msgstr "文字滾動"
+
+msgid "Text you want to scroll"
+msgstr "妳想要顯示的文字"
+
+msgid "which eth to monitor"
+msgstr "選擇監控哪個網口"
+
 #: ../../package/new/luci-app-oled/luasrc/view/oled/status.htm:20
 msgid "Collecting data..."
 msgstr ""

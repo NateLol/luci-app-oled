@@ -33,7 +33,7 @@ SOFTWARE.
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include  <signal.h>
+#include <signal.h>
 #include <unistd.h>
 #include <time.h>
 #include "SSD1306_OLED.h"
@@ -275,27 +275,27 @@ void testdrawchar()
 }
 
 /* Display "scroll" and scroll around */
-void testscrolltext()
+void testscrolltext(char* str)
 {
     setTextSize(2);
     setTextColor(WHITE);
-    setCursor(10,0);
-    print_str("scroll");
-    println();
+    setCursor(10,8);
+    sprintf(buf,"%s",str);
+    print_strln(buf);
     Display();
     usleep(1000);
     startscrollright(0x00, 0x0F);
-    usleep(2000000);
+    usleep(5000000);
     stopscroll();
     usleep(1000000);
     startscrollleft(0x00, 0x0F);
-    usleep(2000000);
+    usleep(5000000);
     stopscroll();
     usleep(1000000);
     startscrolldiagright(0x00, 0x07);
-    usleep(2000000);
+    usleep(5000000);
     startscrolldiagleft(0x00, 0x07);
-    usleep(2000000);
+    usleep(5000000);
     stopscroll();
 }
 

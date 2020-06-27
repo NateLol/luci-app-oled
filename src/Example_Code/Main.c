@@ -13,26 +13,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
-#include <getopt.h>
-
-const char* program_name;
-
-
-void print_usage(FILE* stream, int exit_code)
-{
-    fprintf(stream, "Usage: %s options [...]\n", program_name);
-    fprintf(stream, 
-        "-h --help Display this usage information\n"
-        "-o \n"
-        "-v \n");
-    exit(exit_code);
-}
-
-int getopt(int argc, char * const argv[], const char *optstring);
-
-extern char * optarg;
-extern int optind, opteer, optopt;
-
 
 /* Header Files */
 #include "I2C.h"
@@ -58,11 +38,9 @@ void BreakDeal(int sig)
 }
 
 
-
-
 int main(int argc, char* argv[])
 {	
-    int display_offset=5;
+    int display_offset=7;
     int date=atoi(argv[1]);
     int lanip=atoi(argv[2]);
     int cputemp=atoi(argv[3]);
@@ -79,9 +57,11 @@ int main(int argc, char* argv[])
     int filltriangle=atoi(argv[14]);
     int displaybitmap=atoi(argv[15]);
     int displayinvertnormal=atoi(argv[16]);
-    int drawbitmap=atoi(argv[17]);
-    int drawbitmapeg=atoi(argv[18]);
-
+    int drawbitmapeg=atoi(argv[17]);
+    int scroll=atoi(argv[18]);
+    char *text=argv[19];   
+    char *eth = argv[20];
+    
 
 
     /* Initialize I2C bus and connect to the I2C Device */
@@ -113,6 +93,12 @@ int main(int argc, char* argv[])
 
     // draw many lines
     while(1){
+
+	if(scroll){
+	    testscrolltext(text);
+	    usleep(1000000);
+	    clearDisplay();
+	}	
 
         if(drawline){
             testdrawline();
@@ -176,20 +162,22 @@ int main(int argc, char* argv[])
             display_bitmap();
             Display();
             usleep(1000000);
-        }
+        };
         // Display Inverted image and normalize it back
         if(displayinvertnormal){
             display_invert_normal();
             clearDisplay();
             usleep(1000000);
             Display();
+		
         }
 
         // Generate Signal after 20 Seconds
-        alarm(20);
 
         // draw a bitmap icon and 'animate' movement
         if(drawbitmapeg){
+	    alarm(10);
+	    flag=0;
             testdrawbitmap_eg();
             clearDisplay();
             usleep(1000000);
