@@ -475,8 +475,8 @@ void testcpufreq(int standalone)
     {
         fgets(content_buff,FREQSIZE,fp);
         fclose(fp);
-        if(standalone) {sprintf(buf,"%d Mhz",atoi(content_buff)/1000); setCursor((127-strlen(buf)*11)/2, 8);}
-        else sprintf(buf,"CPU FREQ:%d Mhz",atoi(content_buff)/1000);
+        if(standalone) {sprintf(buf,"%d MHz",atoi(content_buff)/1000); setCursor((127-strlen(buf)*11)/2, 8);}
+        else sprintf(buf,"CPU FREQ:%d MHz",atoi(content_buff)/1000);
         print_strln(buf);
     }
 
@@ -524,7 +524,7 @@ void testprintinfo()
     {
         fgets(content_buff,FREQSIZE,fp);
         fclose(fp);
-        sprintf(buf,"CPU freq:%d Mhz ",atoi(content_buff)/1000);
+        sprintf(buf,"CPU freq:%d MHz ",atoi(content_buff)/1000);
         print_strln(buf);
     }
 
