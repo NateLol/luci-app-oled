@@ -184,21 +184,35 @@ int main(int argc, char* argv[])
             Display();
         }
 
-        setTextSize(1);
-        setTextColor(WHITE); 
+        
         //setCursor(0,0);   
 
         // info display
-	   for(int i = 1; i < time; i++){
-
-            if(date) {setCursor(display_offset, 8*(date-1)); testdate();}
-            if(lanip) {setCursor(display_offset, 8*(date+lanip-1)); testlanip();}
-            if(cpufreq) {setCursor(display_offset, 8*(date+lanip+cpufreq-1)); testcpufreq();}
-            if(cputemp) {setCursor(display_offset, 8*(date+lanip+cpufreq+cputemp-1));testcputemp();}
-            if(netspeed) {setCursor(display_offset, 8*(date+lanip+cpufreq+cputemp+netspeed-1));testnetspeed();}
+	 for(int i = 1; i < time; i++){
+	   if (date+lanip+cpufreq+cputemp+netspeed == 1){
+	   	setTextSize(2);
+        	setTextColor(WHITE); 
+	   	if (date) testdate(date);
+	   	if (lanip) testlanip(lanip);
+	   	if (cpufreq) testcpufreq(cpufreq);
+	   	if (cputemp) testcputemp(cputemp);
+	   	if (netspeed) testnetspeed(netspeed);
+		Display();
+        	usleep(1000000);
+        	clearDisplay();
+	   }
+	   else{
+	   	setTextSize(1);
+        	setTextColor(WHITE); 
+            	if(date) {setCursor(display_offset, 8*(date-1)); testdate(0);}
+            	if(lanip) {setCursor(display_offset, 8*(date+lanip-1)); testlanip(0);}
+            	if(cpufreq) {setCursor(display_offset, 8*(date+lanip+cpufreq-1)); testcpufreq(0);}
+            	if(cputemp) {setCursor(display_offset, 8*(date+lanip+cpufreq+cputemp-1));testcputemp(0);}
+            	if(netspeed) {setCursor(display_offset, 8*(date+lanip+cpufreq+cputemp+netspeed-1));testnetspeed(0);}
         	Display();
         	usleep(1000000);
         	clearDisplay();
+        }
 	   }
     }
 

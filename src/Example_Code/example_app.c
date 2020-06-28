@@ -407,60 +407,76 @@ void deeplyembedded_credits()
 }
 
 
-void testdate()
+void testdate(int standalone)
 {
     time_t rawtime;
     time_t curtime;
     uint8_t timebuff[TIMESIZE];
     curtime = time(NULL);
     time(&rawtime);
-    strftime(timebuff,80,"%Y-%m-%d %H:%M:%S",localtime(&rawtime));
-    sprintf(buf,"%s",timebuff);
-    print_strln(buf);
+    if(standalone) 
+    {
+        strftime(timebuff,80,"%Y-%m-%d",localtime(&rawtime));
+        sprintf(buf,"%s",timebuff);
+        setCursor((127-strlen(buf)*11)/2-2,0);
+        print_strln(buf);
+        strftime(timebuff,80,"%H:%M:%S",localtime(&rawtime));
+        sprintf(buf,"%s",timebuff);
+        setCursor((127-strlen(buf)*11)/2,16);
+        print_strln(buf);
+    }
+    else {
+        strftime(timebuff,80,"%Y-%m-%d %H:%M:%S",localtime(&rawtime));
+        sprintf(buf,"%s",timebuff);
+        print_strln(buf);
+    }
 
 }
 
 
-void testlanip()
+void testlanip(int standalone)
 {
     if((fp=popen(IPPATH,"r"))!=NULL)
     {
         fscanf(fp,"%s",content_buff);
         fclose(fp);
         //ipbuff[strlen(ipbuff)-1]=32;
-        sprintf(buf,"IP:%s",content_buff);
+        if(standalone) {sprintf(buf,"%s",content_buff); setTextSize(1); setCursor((127-strlen(buf)*6)/2, 12);}
+        else sprintf(buf,"IP:%s",content_buff);
         print_strln(buf);
     }
 
 }
 
 
-void testcputemp()
+void testcputemp(int standalone)
 {
     if((fp=fopen(TEMPPATH,"r"))!=NULL)
     {
         fgets(content_buff,TEMPSIZE,fp);
         fclose(fp);
-        sprintf(buf,"CPU TEMP:%.2f C",atoi(content_buff)/100.0);
+        if(standalone) {sprintf(buf, "%.2f C",atoi(content_buff)/100.0); setCursor((127-strlen(buf)*11)/2, 8);}
+        else sprintf(buf,"CPU TEMP:%.2f C",atoi(content_buff)/100.0);
         print_strln(buf);
     }
 
 }
 
 
-void testcpufreq()
+void testcpufreq(int standalone)
 {
     if((fp=popen(FREQPATH,"r")) != NULL)
     {
         fgets(content_buff,FREQSIZE,fp);
         fclose(fp);
-        sprintf(buf,"CPU FREQ:%d Mhz ",atoi(content_buff)/1000);
+        if(standalone) {sprintf(buf,"%d Mhz",atoi(content_buff)/1000); setCursor((127-strlen(buf)*11)/2, 8);}
+        else sprintf(buf,"CPU FREQ:%d Mhz",atoi(content_buff)/1000);
         print_strln(buf);
     }
 
 }
 
-void testnetspeed()
+void testnetspeed(int standalone)
 {
     if((fp=popen(NETPATH,"r")) != NULL)
     {

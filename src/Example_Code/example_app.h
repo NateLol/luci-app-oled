@@ -15,10 +15,10 @@ void testdrawbitmap(const unsigned char *bitmap, unsigned char w, unsigned char 
 void testdrawbitmap_eg();
 void deeplyembedded_credits();
 void testprintinfo();
-void testdate();
-void testlanip();
-void testcpufreq();
-void testcputemp();
-void testnetspeed();
+void testdate(int standalone);
+void testlanip(int standalone);
+void testcpufreq(int standalone);
+void testcputemp(int standalone);
+void testnetspeed(int standalone);
 
  
