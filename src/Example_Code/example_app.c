@@ -416,6 +416,7 @@ void testdate(int standalone)
     time(&rawtime);
     if(standalone) 
     {
+    	/*
         strftime(timebuff,80,"%Y-%m-%d",localtime(&rawtime));
         sprintf(buf,"%s",timebuff);
         setCursor((127-strlen(buf)*11)/2-2,0);
@@ -423,6 +424,11 @@ void testdate(int standalone)
         strftime(timebuff,80,"%H:%M:%S",localtime(&rawtime));
         sprintf(buf,"%s",timebuff);
         setCursor((127-strlen(buf)*11)/2,16);
+        print_strln(buf);*/
+        setTextSize(3);
+        strftime(timebuff,80,"%H:%M",localtime(&rawtime));
+        sprintf(buf,"%s",timebuff);
+        setCursor((127-strlen(buf)*16)/2-4,4);
         print_strln(buf);
     }
     else {
