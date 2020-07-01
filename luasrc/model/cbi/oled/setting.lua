@@ -23,7 +23,7 @@ o = s:taboption("info", Flag, "cputemp", translate("CPU temperature"))
 o.default=0
 o = s:taboption("info", Flag, "cpufreq", translate("CPU frequency"))
 o.default=0
-o = s:taboption("info", Flag, "netspeed", translate("Network speed"))
+o = s:taboption("info", Flag, "netspeed", translate("Network speed"), translate("1Mbps(m/s)=1,000Kbps(k/s)=1,000,000bps(b/s)"))
 o.default=0
 o = s:taboption("info", ListValue, "netsource", translate("which eth to monitor"))                       
 o:value("eth0","eth0")                                                                                   
