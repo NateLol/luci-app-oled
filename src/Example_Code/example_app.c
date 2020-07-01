@@ -487,40 +487,33 @@ void testnetspeed(int standalone)
     int in,out;
     if((fp=popen(NETPATH,"r")) != NULL)
     {	
-	setTextSize(2);
+	    
         fscanf(fp,"%d %d", &in, &out);
         fclose(fp);
         if(standalone){
-	    setCursor(7,0);
-	    if (in < 1000)
-            	sprintf(buf, "U:%d B/s", in);
-	    else if (in > 1000000)
-		sprintf(buf, "U:%.2f M/s", in/1000000.0);
-	    else sprintf(buf, "U:%.2f K/s", in/1000.0);
+        	setTextSize(2);
+	        setCursor(7,0);
+	        if (in < 1000) sprintf(buf, "U:%d B/s", in);
+	        else if (in > 1000000) sprintf(buf, "U:%.2f M/s", in/1000000.0);
+	        else sprintf(buf, "U:%.2f K/s", in/1000.0);
             print_strln(buf);
-	    setCursor(7,16);
-	    if (out < 1000)
-            	sprintf(buf, "D:%d B/s", out);
-	    else if (out > 1000000)
-		sprintf(buf, "D:%.2f M/s", out/1000000.0);
-	    else sprintf(buf, "D:%.2f K/s", out/1000.0);
+	        setCursor(7,16);
+	        if (out < 1000) sprintf(buf, "D:%d B/s", out);
+	        else if (out > 1000000) sprintf(buf, "D:%.2f M/s", out/1000000.0);
+	        else sprintf(buf, "D:%.2f K/s", out/1000.0);
             print_strln(buf);
-        }
-        else{
-	    setTextSize(1);
-            if (in < 1000)
-            	sprintf(buf, "U:%d B/s,", in);
-	    else if (in > 1000000)
-		sprintf(buf, "U:%.2f M/s,", in/1000000.0);
-	    else sprintf(buf, "U:%.2f K/s,", in/1000.0);
+    	}
+    	else{
+	    	setTextSize(1);
+            if (in < 1000) sprintf(buf, "U:%d B/s,", in);
+	    	else if (in > 1000000) sprintf(buf, "U:%.2f M/s,", in/1000000.0);
+	    	else sprintf(buf, "U:%.2f K/s,", in/1000.0);
             print_str(buf);  
-	    if (out < 1000)
-            	sprintf(buf, "D:%d B/s", out);
-	    else if (out > 1000000)
-		sprintf(buf, "D:%.2f M/s", out/1000000.0);
-	    else sprintf(buf, "D:%.2f K/s", out/1000.0);
+	    	if (out < 1000) sprintf(buf, "D:%d B/s", out);
+	    	else if (out > 1000000) sprintf(buf, "D:%.2f M/s", out/1000000.0);
+	    	else sprintf(buf, "D:%.2f K/s", out/1000.0);
             print_str(buf);          
-	}	
+		}	
     }
 
 }
