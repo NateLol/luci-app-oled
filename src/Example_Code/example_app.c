@@ -489,9 +489,9 @@ void testnetspeed(int standalone)
     {	
 	    
         fscanf(fp,"%d %d", &in, &out);
-        in = in*8;
-        out = out*8;
         fclose(fp);
+	in = in*8;
+        out = out*8;
         if(standalone){
         	setTextSize(2);
 	        setCursor(7,0);
