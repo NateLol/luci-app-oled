@@ -34,6 +34,12 @@ start() {
 	scroll=$(uci get oled.@oled[0].scroll)
 	text=$(uci get oled.@oled[0].text)
 	netsource=$(uci get oled.@oled[0].netsource)
+	if [ ${netspeed} -eq 1 ]; then
+		nohup /usr/sbin/netspeed ${netsource} >/dev/null 2>&1 &
+	else
+		kill `pgrep /usr/sbin/netspeed`
+		rm -f /tmp/netspeed
+	fi
 	nohup ${PROG} ${date} ${lanip} ${cputemp} ${cpufreq} ${netspeed} ${time} ${drawline} ${drawrect} ${fillrect} ${drawcircle} ${drawroundrect} ${fillroundrect} ${drawtriangle} ${filltriangle} ${displaybitmap} ${displayinvertnormal}  ${drawbitmapeg} ${scroll} "${text}" "${netsource}" > /dev/null 2>&1 &
 }
 
