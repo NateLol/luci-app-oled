@@ -496,28 +496,28 @@ void testnetspeed(int standalone)
         	setTextSize(2);
 	        setCursor(7,0);
 	        oled_write(24);
-	        if (in < 1000) sprintf(buf, ":%db/s", in);
-	        else if (in > 1000000) sprintf(buf, ":%.2fm/s", in/1000000.0);
-	        else sprintf(buf, ":%.2fk/s", in/1000.0);
+	        if (in < 1000) sprintf(buf, "%db/s", in);
+	        else if (in > 1000000) sprintf(buf, "%.2fm/s", in/1000000.0);
+	        else sprintf(buf, "%.2fk/s", in/1000.0);
             print_strln(buf);
 	        setCursor(7,16);
 	        oled_write(25);
-	        if (out < 1000) sprintf(buf, ":%db/s", out);
-	        else if (out > 1000000) sprintf(buf, ":%.2fm/s", out/1000000.0);
-	        else sprintf(buf, ":%.2fk/s", out/1000.0);
+	        if (out < 1000) sprintf(buf, "%db/s", out);
+	        else if (out > 1000000) sprintf(buf, "%.2fm/s", out/1000000.0);
+	        else sprintf(buf, "%.2fk/s", out/1000.0);
             print_strln(buf);
     	}
     	else{
 	    	setTextSize(1);
 	    	oled_write(24);
-            if (in < 1000) sprintf(buf, ":%db/s,", in);
-	    	else if (in > 1000000) sprintf(buf, ":%.2fm/s,", in/1000000.0);
-	    	else sprintf(buf, ":%.2fk/s,", in/1000.0);
+            if (in < 1000) sprintf(buf, "%db/s,", in);
+	    	else if (in > 1000000) sprintf(buf, "%.2fm/s,", in/1000000.0);
+	    	else sprintf(buf, "%.2fk/s,", in/1000.0);
             print_str(buf);  
             oled_write(25);
-	    	if (out < 1000) sprintf(buf, ":%db/s", out);
-	    	else if (out > 1000000) sprintf(buf, ":%.2fm/s", out/1000000.0);
-	    	else sprintf(buf, ":%.2fk/s", out/1000.0);
+	    	if (out < 1000) sprintf(buf, "%db/s", out);
+	    	else if (out > 1000000) sprintf(buf, "%.2fm/s", out/1000000.0);
+	    	else sprintf(buf, "%.2fk/s", out/1000.0);
             print_str(buf);          
 		}	
     }
