@@ -520,20 +520,20 @@ void testnetspeed(int mode, int y)
 	    	
         fscanf(fp,"%d %d", &in, &out);
         fclose(fp);
-	in = in*8;
-        out = out*8;
+	in = in;
+        out = out;
         switch(mode)
 	{
 	    case SPLIT:	
         	setTextSize(2);
-	        if (in < 1000) sprintf(buf, "%03db", in);
+	        if (in < 1000) sprintf(buf, "%03dB", in);
 	        else if (in > 1000000) sprintf(buf, "%03dM", in/1000000);
 	        else sprintf(buf, "%03dK", in/1000);
 		setCursor((127-(strlen(buf)+1)*11)/2,0);
 		oled_write(24);
             	print_str(buf);
 	        
-	        if (out < 1000) sprintf(buf, "%03db", out);
+	        if (out < 1000) sprintf(buf, "%03dB", out);
 	        else if (out > 1000000) sprintf(buf, "%03dM", out/1000000);
 	        else sprintf(buf, "%03dK", out/1000);
 		setCursor((127-(strlen(buf)+1)*11)/2,16);
@@ -542,13 +542,13 @@ void testnetspeed(int mode, int y)
 	    	break;
 	    case MERGE:
 	    	setTextSize(1);
-            	if (in < 1000) sprintf(buf, "%03db ", in);
+            	if (in < 1000) sprintf(buf, "%03dB ", in);
 	    	else if (in > 1000000) sprintf(buf, "%03dM", in/1000000);
 	    	else sprintf(buf, "%03dK ", in/1000);
 		setCursor((127-(2*strlen(buf)-1)*6)/2-4, y+4);
 		oled_write(24);
             	print_str(buf);  
-	    	if (out < 1000) sprintf(buf, "%03db", out);
+	    	if (out < 1000) sprintf(buf, "%03dB", out);
 	    	else if (out > 1000000) sprintf(buf, "%03dM", out/1000000);
 	    	else sprintf(buf, "%03dK", out/1000);
 		oled_write(25);
@@ -558,12 +558,12 @@ void testnetspeed(int mode, int y)
 	    	setTextSize(1);
 		setCursor(display_offset, y);
 	    	oled_write(24);
-            	if (in < 1000) sprintf(buf, "%03db ", in);
+            	if (in < 1000) sprintf(buf, "%03dB ", in);
 	    	else if (in > 1000000) sprintf(buf, "%03dM", in/1000000);
 	    	else sprintf(buf, "%03dK ", in/1000);
             	print_str(buf);  
             	oled_write(25);
-	    	if (out < 1000) sprintf(buf, "%03db", out);
+	    	if (out < 1000) sprintf(buf, "%03dB", out);
 	    	else if (out > 1000000) sprintf(buf, "%03dM", out/1000000);
 	    	else sprintf(buf, "%03dK", out/1000);
             	print_str(buf);          
