@@ -40,7 +40,6 @@ void BreakDeal(int sig)
 
 int main(int argc, char* argv[])
 {	
-    int display_offset=7;
     int date=atoi(argv[1]);
     int lanip=atoi(argv[2]);
     int cputemp=atoi(argv[3]);
@@ -186,29 +185,43 @@ int main(int argc, char* argv[])
 
         
         //setCursor(0,0);   
-
+	setTextColor(WHITE); 
         // info display
-	 for(int i = 1; i < time; i++){
-	   if (date+lanip+cpufreq+cputemp+netspeed == 1){
-	   	setTextSize(2);
-        	setTextColor(WHITE); 
-	   	if (date) testdate(date);
-	   	if (lanip) testlanip(lanip);
-	   	if (cpufreq) testcpufreq(cpufreq);
-	   	if (cputemp) testcputemp(cputemp);
-	   	if (netspeed) testnetspeed(netspeed);
+	int sum = date+lanip+cpufreq+cputemp+netspeed;
+	if (sum == 0) {clearDisplay(); return 0;}
+	 for(int i = 1; i < time; i++){	
+	   if (sum == 1){//only one item for display
+	   	if (date) testdate(CENTER, 8);
+	   	if (lanip) testlanip(CENTER, 8);
+	   	if (cpufreq) testcpufreq(CENTER, 8);
+	   	if (cputemp) testcputemp(CENTER, 8);
+	   	if (netspeed) testnetspeed(SPLIT,0);
+		Display();
+        	usleep(1000000);
+        	clearDisplay();
+	   }else if (sum == 2){//two items for display
+		if(date) {testdate(CENTER, 16*(date-1));}
+            	if(lanip) {testlanip(CENTER, 16*(date+lanip-1));}
+            	if(cpufreq) {testcpufreq(CENTER, 16*(date+lanip+cpufreq-1));}
+            	if(cputemp) {testcputemp(CENTER, 16*(date+lanip+cpufreq+cputemp-1));}
+            	if(netspeed) {testnetspeed(MERGE, 16*(date+lanip+cpufreq+cputemp+netspeed-1));}
 		Display();
         	usleep(1000000);
         	clearDisplay();
 	   }
-	   else{
-	   	setTextSize(1);
-        	setTextColor(WHITE); 
-            	if(date) {setCursor(display_offset, 8*(date-1)); testdate(0);}
-            	if(lanip) {setCursor(display_offset, 8*(date+lanip-1)); testlanip(0);}
-            	if(cpufreq) {setCursor(display_offset, 8*(date+lanip+cpufreq-1)); testcpufreq(0);}
-            	if(cputemp) {setCursor(display_offset, 8*(date+lanip+cpufreq+cputemp-1));testcputemp(0);}
-            	if(netspeed) {setCursor(display_offset, 8*(date+lanip+cpufreq+cputemp+netspeed-1));testnetspeed(0);}
+	   else{//more than two items for display
+            	if(date) {testdate(FULL, 8*(date-1));}
+            	if(lanip) {testlanip(FULL, 8*(date+lanip-1));}
+		if(cpufreq && cputemp) {
+			testcpu(8*(date+lanip));
+			if(netspeed) {testnetspeed(FULL, 8*(date+lanip+1+netspeed-1));}
+		}
+		else{
+            		if(cpufreq) {testcpufreq(FULL, 8*(date+lanip+cpufreq-1));}
+            		if(cputemp) {testcputemp(FULL, 8*(date+lanip+cpufreq+cputemp-1));}
+			if(netspeed) {testnetspeed(FULL, 8*(date+lanip+cpufreq+cputemp+netspeed-1));}
+		}
+            	
         	Display();
         	usleep(1000000);
         	clearDisplay();

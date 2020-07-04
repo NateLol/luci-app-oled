@@ -91,7 +91,7 @@ static const unsigned char logo16_glcd_bmp[] =
 FILE *fp;
 char content_buff[BUFMAX];
 char buf[BUFMAX];
-
+int display_offset =7;
 /* draw many lines */
 void testdrawline() 
 {
@@ -407,122 +407,196 @@ void deeplyembedded_credits()
 }
 
 
-void testdate(int standalone)
+void testdate(int mode, int y)
 {
     time_t rawtime;
     time_t curtime;
     uint8_t timebuff[TIMESIZE];
     curtime = time(NULL);
     time(&rawtime);
-    if(standalone) 
+    switch (mode) 
     {
-    	/*
-        strftime(timebuff,80,"%Y-%m-%d",localtime(&rawtime));
-        sprintf(buf,"%s",timebuff);
-        setCursor((127-strlen(buf)*11)/2-2,0);
-        print_strln(buf);
-        strftime(timebuff,80,"%H:%M:%S",localtime(&rawtime));
-        sprintf(buf,"%s",timebuff);
-        setCursor((127-strlen(buf)*11)/2,16);
-        print_strln(buf);*/
-        setTextSize(3);
-        strftime(timebuff,80,"%H:%M",localtime(&rawtime));
-        sprintf(buf,"%s",timebuff);
-        setCursor((127-strlen(buf)*16)/2-4,4);
-        print_strln(buf);
+	case CENTER:
+		setTextSize(2);
+        	strftime(timebuff,80,"%H:%M",localtime(&rawtime));
+        	sprintf(buf,"%s",timebuff);
+        	setCursor((127-strlen(buf)*11)/2-4, y);
+	break;    	
+	case FULL:
+		setTextSize(1);
+        	strftime(timebuff,80,"%Y-%m-%d %H:%M:%S",localtime(&rawtime));
+        	sprintf(buf,"%s",timebuff);
+		setCursor(display_offset, y);
     }
-    else {
-        strftime(timebuff,80,"%Y-%m-%d %H:%M:%S",localtime(&rawtime));
-        sprintf(buf,"%s",timebuff);
-        print_strln(buf);
-    }
-
+    print_strln(buf);
 }
 
 
-void testlanip(int standalone)
+void testlanip(int mode, int y)
 {
+    setTextSize(1);
     if((fp=popen(IPPATH,"r"))!=NULL)
     {
         fscanf(fp,"%s",content_buff);
         fclose(fp);
         //ipbuff[strlen(ipbuff)-1]=32;
-        if(standalone) {sprintf(buf,"%s",content_buff); setTextSize(1); setCursor((127-strlen(buf)*6)/2, 12);}
-        else sprintf(buf,"IP:%s",content_buff);
+        switch(mode) 
+	{
+	    case CENTER:
+		setTextSize(1);
+		sprintf(buf,"%s",content_buff);  
+		setCursor((127-strlen(buf)*6)/2, y+4);
+		break;
+
+	    case FULL:
+		setTextSize(1);
+		sprintf(buf,"IP:%s",content_buff);
+		setCursor(display_offset, y);
+	}
         print_strln(buf);
     }
 
 }
 
 
-void testcputemp(int standalone)
+void testcputemp(int mode, int y)
 {
     if((fp=fopen(TEMPPATH,"r"))!=NULL)
     {
         fgets(content_buff,TEMPSIZE,fp);
         fclose(fp);
-        if(standalone) {sprintf(buf, "%.2f C",atoi(content_buff)/100.0); setCursor((127-strlen(buf)*11)/2, 8);}
-        else sprintf(buf,"CPU TEMP:%.2f C",atoi(content_buff)/100.0);
-        print_strln(buf);
+        switch (mode) 
+	{
+	    case CENTER:
+		setTextSize(2);
+		sprintf(buf, "%.2f",atoi(content_buff)/100.0); 
+		setCursor((127-(strlen(buf)+2)*11)/2-4, y);
+		print_str(buf);
+		oled_write(247);
+		oled_write(67);
+		break;
+	    case FULL:
+		setTextSize(1);
+		sprintf(buf,"CPU TEMP:%.2f",atoi(content_buff)/100.0); 
+		setCursor(display_offset, y);
+		print_str(buf); 
+		oled_write(247); 
+		oled_write(67);
+	}
+        
     }
 
 }
 
 
-void testcpufreq(int standalone)
+void testcpufreq(int mode, int y)
 {
     if((fp=popen(FREQPATH,"r")) != NULL)
     {
         fgets(content_buff,FREQSIZE,fp);
         fclose(fp);
-        if(standalone) {sprintf(buf,"%d MHz",atoi(content_buff)/1000); setCursor((127-strlen(buf)*11)/2, 8);}
-        else sprintf(buf,"CPU FREQ:%d MHz",atoi(content_buff)/1000);
+        switch(mode) 
+	{
+	    case CENTER:
+		setTextSize(2);
+		sprintf(buf,"%dMHz",atoi(content_buff)/1000); 
+		setCursor((127-strlen(buf)*11)/2-4, y);
+		break;
+            case FULL:
+		setTextSize(1);
+		sprintf(buf,"CPU FREQ:%dMHz",atoi(content_buff)/1000);
+		setCursor(display_offset, y);
+	}
         print_strln(buf);
     }
 
 }
 
-void testnetspeed(int standalone)
+void testnetspeed(int mode, int y)
 {
     int in,out;
     if((fp=popen(NETPATH,"r")) != NULL)
     {	
-	    
+	    	
         fscanf(fp,"%d %d", &in, &out);
         fclose(fp);
 	in = in*8;
         out = out*8;
-        if(standalone){
+        switch(mode)
+	{
+	    case SPLIT:	
         	setTextSize(2);
-	        setCursor(7,0);
-	        oled_write(24);
-	        if (in < 1000) sprintf(buf, "%db/s", in);
-	        else if (in > 1000000) sprintf(buf, "%.2fm/s", in/1000000.0);
-	        else sprintf(buf, "%.2fk/s", in/1000.0);
-            print_strln(buf);
-	        setCursor(7,16);
+	        if (in < 1000) sprintf(buf, "%03db", in);
+	        else if (in > 1000000) sprintf(buf, "%03dM", in/1000000);
+	        else sprintf(buf, "%03dK", in/1000);
+		setCursor((127-(strlen(buf)+1)*11)/2,0);
+		oled_write(24);
+            	print_str(buf);
+	        
+	        if (out < 1000) sprintf(buf, "%03db", out);
+	        else if (out > 1000000) sprintf(buf, "%03dM", out/1000000);
+	        else sprintf(buf, "%03dK", out/1000);
+		setCursor((127-(strlen(buf)+1)*11)/2,16);
 	        oled_write(25);
-	        if (out < 1000) sprintf(buf, "%db/s", out);
-	        else if (out > 1000000) sprintf(buf, "%.2fm/s", out/1000000.0);
-	        else sprintf(buf, "%.2fk/s", out/1000.0);
-            print_strln(buf);
-    	}
-    	else{
+            	print_str(buf);
+	    	break;
+	    case MERGE:
 	    	setTextSize(1);
+            	if (in < 1000) sprintf(buf, "%03db ", in);
+	    	else if (in > 1000000) sprintf(buf, "%03dM", in/1000000);
+	    	else sprintf(buf, "%03dK ", in/1000);
+		setCursor((127-(2*strlen(buf)-1)*6)/2-4, y+4);
+		oled_write(24);
+            	print_str(buf);  
+	    	if (out < 1000) sprintf(buf, "%03db", out);
+	    	else if (out > 1000000) sprintf(buf, "%03dM", out/1000000);
+	    	else sprintf(buf, "%03dK", out/1000);
+		oled_write(25);
+            	print_str(buf);  	
+		break;  
+	    case FULL:
+	    	setTextSize(1);
+		setCursor(display_offset, y);
 	    	oled_write(24);
-            if (in < 1000) sprintf(buf, "%db/s ", in);
-	    	else if (in > 1000000) sprintf(buf, "%.2fm/s ", in/1000000.0);
-	    	else sprintf(buf, "%.2fk/s ", in/1000.0);
-            print_str(buf);  
-            oled_write(25);
-	    	if (out < 1000) sprintf(buf, "%db/s", out);
-	    	else if (out > 1000000) sprintf(buf, "%.2fm/s", out/1000000.0);
-	    	else sprintf(buf, "%.2fk/s", out/1000.0);
-            print_str(buf);          
-		}	
+            	if (in < 1000) sprintf(buf, "%03db ", in);
+	    	else if (in > 1000000) sprintf(buf, "%03dM", in/1000000);
+	    	else sprintf(buf, "%03dK ", in/1000);
+            	print_str(buf);  
+            	oled_write(25);
+	    	if (out < 1000) sprintf(buf, "%03db", out);
+	    	else if (out > 1000000) sprintf(buf, "%03dM", out/1000000);
+	    	else sprintf(buf, "%03dK", out/1000);
+            	print_str(buf);          
+	}	
     }
 
 }
+void testcpu(int y)
+{
+//freq
+    setTextSize(1);
+    setCursor(display_offset, y);
+    if((fp=popen(FREQPATH,"r")) != NULL)
+    {
+        fgets(content_buff,FREQSIZE,fp);
+        fclose(fp);
+        sprintf(buf,"CPU:%dMHz ", atoi(content_buff)/1000);
+        print_str(buf);
+    }
+
+
+//temp
+    if((fp=fopen(TEMPPATH,"r"))!=NULL)
+    {
+        fgets(content_buff,TEMPSIZE,fp);
+        fclose(fp);
+    	sprintf(buf, "%.2f",atoi(content_buff)/100.0); 
+    	print_str(buf);
+    	oled_write(247);
+    	oled_write(67);
+    }
+}
+
 void testprintinfo()
 {
     setTextSize(1);
