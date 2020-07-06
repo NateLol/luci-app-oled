@@ -11,7 +11,7 @@ start() {
 	#crontab daemon
 	cat /etc/crontabs/root | grep oled > /dev/null
 	if [ $? -eq 1 ]; then
-		echo "*/15 * * * * /etc/init.d/oled restart" >> /etc/crontabs/root	
+		echo "*/15 * * * * /etc/init.d/oled restart &>/dev/null 2>&1" >> /etc/crontabs/root	
 	fi
 
 	date=$(uci get oled.@oled[0].date)
@@ -37,7 +37,7 @@ start() {
 	if [ ${netspeed} -eq 1 ]; then
 		nohup /usr/sbin/netspeed ${netsource} >/dev/null 2>&1 &
 	else
-		kill `pgrep /usr/sbin/netspeed`
+		ps|grep netspeed|grep -v grep|awk '{print $1}'|xargs kill -9
 		rm -f /tmp/netspeed
 	fi
 	nohup ${PROG} ${date} ${lanip} ${cputemp} ${cpufreq} ${netspeed} ${time} ${drawline} ${drawrect} ${fillrect} ${drawcircle} ${drawroundrect} ${fillroundrect} ${drawtriangle} ${filltriangle} ${displaybitmap} ${displayinvertnormal}  ${drawbitmapeg} ${scroll} "${text}" "${netsource}" > /dev/null 2>&1 &
@@ -46,6 +46,8 @@ start() {
  
 stop() {
 	kill `pgrep /usr/bin/oled`
+	sleep 1
+	ps|grep netspeed|grep -v grep|awk '{print $1}'|xargs kill -9
 	sleep 1
 	echo "oled exit..."
 }
