@@ -11,7 +11,7 @@ start() {
 	#crontab daemon
 	cat /etc/crontabs/root | grep oled > /dev/null
 	if [ $? -eq 1 ]; then
-		echo "*/15 * * * * /etc/init.d/oled restart &>/dev/null 2>&1" >> /etc/crontabs/root	
+		echo "*/5 * * * * /etc/init.d/oled restart &>/dev/null 2>&1" >> /etc/crontabs/root	
 	fi
 
 	date=$(uci get oled.@oled[0].date)
