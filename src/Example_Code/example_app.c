@@ -472,16 +472,18 @@ void testcputemp(int mode, int y)
 		sprintf(buf, "%.2f",atoi(content_buff)/100.0); 
 		setCursor((127-(strlen(buf)+2)*11)/2-4, y);
 		print_str(buf);
-		oled_write(247);
+		oled_write(0);
 		oled_write(67);
+        	drawCircle(getCursorX()-16, getCursorY()+3, 2, WHITE);
 		break;
 	    case FULL:
 		setTextSize(1);
 		sprintf(buf,"CPU TEMP:%.2f",atoi(content_buff)/100.0); 
 		setCursor(display_offset, y);
 		print_str(buf); 
-		oled_write(247); 
+		oled_write(0);
 		oled_write(67);
+       		drawCircle(getCursorX()-8, getCursorY()+1, 1, WHITE);
 	}
         
     }
@@ -499,12 +501,12 @@ void testcpufreq(int mode, int y)
 	{
 	    case CENTER:
 		setTextSize(2);
-		sprintf(buf,"%dMHz",atoi(content_buff)/1000); 
+		sprintf(buf,"%4dMHz",atoi(content_buff)/1000); 
 		setCursor((127-strlen(buf)*11)/2-4, y);
 		break;
             case FULL:
 		setTextSize(1);
-		sprintf(buf,"CPU FREQ:%dMHz",atoi(content_buff)/1000);
+		sprintf(buf,"CPU FREQ:%4dMHz",atoi(content_buff)/1000);
 		setCursor(display_offset, y);
 	}
         print_strln(buf);
@@ -580,7 +582,7 @@ void testcpu(int y)
     {
         fgets(content_buff,FREQSIZE,fp);
         fclose(fp);
-        sprintf(buf,"CPU:%dMHz ", atoi(content_buff)/1000);
+        sprintf(buf,"CPU:%4dMHz ", atoi(content_buff)/1000);
         print_str(buf);
     }
 
@@ -592,8 +594,9 @@ void testcpu(int y)
         fclose(fp);
     	sprintf(buf, "%.2f",atoi(content_buff)/100.0); 
     	print_str(buf);
-    	oled_write(247);
+    	oled_write(0);
     	oled_write(67);
+	drawCircle(getCursorX()-8, getCursorY()+1, 1, WHITE);
     }
 }
 
