@@ -17,4 +17,5 @@ config oled
 	option cputemp '1'
 	option time '60'
 	option enable '0'
+	option scroll '0'
 
