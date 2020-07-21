@@ -37,7 +37,7 @@ start() {
 	if [ ${netspeed} -eq 1 ]; then
 		nohup /usr/sbin/netspeed ${netsource} >/dev/null 2>&1 &
 	else
-		kill -9 $(pgrep -f netspeed)
+		kill -9 $(pgrep -f /usr/sbin/netspeed)
 		rm -f /tmp/netspeed
 	fi
 	nohup ${PROG} ${date} ${lanip} ${cputemp} ${cpufreq} ${netspeed} ${time} ${drawline} ${drawrect} ${fillrect} ${drawcircle} ${drawroundrect} ${fillroundrect} ${drawtriangle} ${filltriangle} ${displaybitmap} ${displayinvertnormal}  ${drawbitmapeg} ${scroll} "${text}" "${netsource}" 1 > /dev/null 2>&1 &
@@ -46,7 +46,7 @@ start() {
  
 stop() {
 	kill -9 $(pgrep /usr/bin/oled)
-	kill -9 $(pgrep -f netspeed)
+	kill -9 $(pgrep -f /usr/sbin/netspeed)
 	echo "oled exit..."
 }
 
@@ -56,7 +56,7 @@ restart(){
 	if [ $? -eq 0 ]; then
 		if [ $enabled -eq 1 ]; then
 			kill -9 $(pgrep /usr/bin/oled)
-			kill -9 $(pgrep -f netspeed)
+			kill -9 $(pgrep -f /usr/sbin/netspeed)
 
 			date=$(uci get oled.@oled[0].date)
 			lanip=$(uci get oled.@oled[0].lanip)
@@ -81,7 +81,7 @@ restart(){
 			if [ ${netspeed} -eq 1 ]; then
 				nohup /usr/sbin/netspeed ${netsource} >/dev/null 2>&1 &
 			else
-				kill -9 $(pgrep -f netspeed)
+				kill -9 $(pgrep -f /usr/sbin/netspeed)
 				rm -f /tmp/netspeed
 			fi
 			nohup ${PROG} ${date} ${lanip} ${cputemp} ${cpufreq} ${netspeed} ${time} ${drawline} ${drawrect} ${fillrect} ${drawcircle} ${drawroundrect} ${fillroundrect} ${drawtriangle} ${filltriangle} ${displaybitmap} ${displayinvertnormal}  ${drawbitmapeg} ${scroll} "${text}" "${netsource}" 0 > /dev/null 2>&1 &
