@@ -44,7 +44,7 @@ start() {
 
  
 stop() {
-	kill -9 $(pgrep /usr/bin/oled)
+	kill -2 $(pgrep /usr/bin/oled)
 	kill -9 $(pgrep -f /usr/sbin/netspeed)
 	echo "oled exit..."
 }
@@ -54,7 +54,7 @@ restart(){
 	pgrep -f ${PROG} >/dev/null
 	if [ $? -eq 0 ]; then
 		if [ $enabled -eq 1 ]; then
-			kill -9 $(pgrep /usr/bin/oled)
+			kill -2 $(pgrep /usr/bin/oled)
 			kill -9 $(pgrep -f /usr/sbin/netspeed)
 
 			date=$(uci get oled.@oled[0].date)
