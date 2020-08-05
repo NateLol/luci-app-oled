@@ -46,6 +46,7 @@ This is the LuCI app written for openwrt (**tested only on NanoPi R2S**) which s
 ## Q&A
 
 Q0. 如何使用该程序？|在那里找到luci界面？
+
 A0. 该程序安装位置在luci界面的`services|服务`下的`OLED`，点击即可找到。
 
 ---
