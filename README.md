@@ -61,7 +61,7 @@ A2. 很大原因是你修改了LAN接口的属性，例如去除了该接口的*
 
 Q3. 为什么我的oled不显示？
 
-A3. 很有可能是您的固件内核驱动不完整，该程序的运行需要在内核驱动中加上**kmod-i2c-xxx**，见Issue #10.
+A3. 很有可能是您的固件内核驱动不完整，该程序的运行需要在内核驱动中加上**kmod-i2c-xxx**，见issue [#10](https://github.com/NateLol/luci-app-oled/issues/10)。
 
 ---
 
