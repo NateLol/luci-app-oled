@@ -2,6 +2,11 @@
 
 This is the LuCI app written for openwrt (**tested only on NanoPi R2S**) which supports ssd 1306 0.91' oled display.
 
+**Raspberry Pi CM4**
+This has been tested on Raspberry Pi CM4 as described in issue [#10](https://github.com/NateLol/luci-app-oled/issues/10).
+You can find what revisions you need to make to have it work on your device.
+Enjoy!
+
 ## Features|功能
 ---
 ### Dispaly Info|显示信息
