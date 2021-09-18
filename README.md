@@ -4,7 +4,7 @@ This is the LuCI app written for openwrt (**tested ~~only~~ on NanoPi R2S**) whi
 
 **Raspberry Pi CM4**
 
-This has been tested on Raspberry Pi CM4 as described in issue [#10](https://github.com/NateLol/luci-app-oled/issues/10).
+This has been tested on Raspberry Pi CM4 as described in issue [#10](https://github.com/NateLol/luci-app-oled/issues/10#issuecomment-922245476).
 You can find what revisions you need to make to have it work on your device.
 Enjoy!
 
