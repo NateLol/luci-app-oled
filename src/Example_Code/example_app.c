@@ -36,6 +36,13 @@ SOFTWARE.
 #include <signal.h>
 #include <unistd.h>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <netinet/in.h>
+#include <net/if.h>
+#include <unistd.h>
+#include <arpa/inet.h>
 #include "SSD1306_OLED.h"
 #include "example_app.h"
 
@@ -57,12 +64,10 @@ SOFTWARE.
 #define TEMPSIZE 5
 //cpu
 #define FREQSIZE 8 
-#define FREQPATH "cat /sys/devices/system/cpu/cpu[04]/cpufreq/cpuinfo_cur_freq"
+#define FREQPATH "/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq"
 //ip
-#define IPPATH "ifconfig br-lan|grep 'inet addr:'|cut -d: -f2|awk '{print $1}'"
+#define LAN_IFNAME "br-lan"
 #define IPSIZE 20
-//netspeed
-#define NETPATH "cat /tmp/netspeed"
 
 /* Extern volatile */
 extern volatile unsigned char flag;
@@ -406,7 +411,6 @@ void deeplyembedded_credits()
     print_strln("THANK YOU");
 }
 
-
 void testdate(int mode, int y)
 {
     time_t rawtime;
@@ -431,33 +435,38 @@ void testdate(int mode, int y)
     print_strln(buf);
 }
 
+char * get_ip_addr(char *ifname) {
+    int n;
+    struct ifreq ifr;
+
+    n = socket(AF_INET, SOCK_DGRAM, 0);
+    //Type of address to retrieve - IPv4 IP address
+    ifr.ifr_addr.sa_family = AF_INET;
+    //Copy the interface name in the ifreq structure
+    strncpy(ifr.ifr_name , ifname , IFNAMSIZ - 1);
+    ioctl(n, SIOCGIFADDR, &ifr);
+    close(n);
+    return inet_ntoa(( (struct sockaddr_in *)&ifr.ifr_addr )->sin_addr);
+}
 
 void testlanip(int mode, int y)
 {
     setTextSize(1);
-    if((fp=popen(IPPATH,"r"))!=NULL)
+    switch(mode) 
     {
-        fscanf(fp,"%s",content_buff);
-        fclose(fp);
-        //ipbuff[strlen(ipbuff)-1]=32;
-        switch(mode) 
-	{
-	    case CENTER:
+         case CENTER:
 		setTextSize(1);
-		sprintf(buf,"%s",content_buff);  
+		sprintf(buf,"%s", get_ip_addr(LAN_IFNAME));
 		setCursor((127-strlen(buf)*6)/2, y+4);
 		break;
 
-	    case FULL:
+         case FULL:
 		setTextSize(1);
-		sprintf(buf,"IP:%s",content_buff);
+		sprintf(buf,"IP:%s",get_ip_addr(LAN_IFNAME));
 		setCursor(display_offset, y);
-	}
-        print_strln(buf);
     }
-
+    print_strln(buf);
 }
-
 
 void testcputemp(int mode, int y)
 {
@@ -487,13 +496,11 @@ void testcputemp(int mode, int y)
 	}
         
     }
-
 }
-
 
 void testcpufreq(int mode, int y)
 {
-    if((fp=popen(FREQPATH,"r")) != NULL)
+    if((fp=fopen(FREQPATH,"r")) != NULL)
     {
         fgets(content_buff,FREQSIZE,fp);
         fclose(fp);
@@ -514,45 +521,49 @@ void testcpufreq(int mode, int y)
 
 }
 
-void testnetspeed(int mode, int y)
+void testnetspeed(int mode, int y, unsigned long int rx, unsigned long int tx)
 {
-    int rx,tx;
-    if((fp=popen(NETPATH,"r")) != NULL)
+    char tx_str[8], rx_str[8];
+
+    if (tx < KB_BYTES) {
+        sprintf(tx_str, "% 4dB ", tx);
+    } else if (tx > MB_BYTES) {
+        sprintf(tx_str, "% 4dM ", tx / MB_BYTES);
+    } else {
+        sprintf(tx_str, "% 4dK ", tx / KB_BYTES);
+    }
+
+    if (rx < KB_BYTES) {
+        sprintf(rx_str, "% 4dB ", rx);
+    } else if (rx > MB_BYTES) {
+        sprintf(rx_str, "% 4dM ", rx / MB_BYTES);
+    } else {
+        sprintf(rx_str, "% 4dK ", rx / KB_BYTES);
+    }
+
+//printf("rxspeed: %s txspeed: %s\n", rx_str, tx_str);
+    switch(mode)
     {
-        fscanf(fp,"%d %d", &rx, &tx);
-        fclose(fp);
-        rx = rx;
-        tx = tx;
-        switch(mode)
-        {
         case SPLIT:
             setTextSize(2);
-            if (tx < 1000) sprintf(buf, "%03dB", tx);
-            else if (tx > 1000000) sprintf(buf, "%03dM", tx/1000000);
-            else sprintf(buf, "%03dK", tx/1000);
+	    strcpy(buf, tx_str);
             setCursor((127-(strlen(buf)+1)*11)/2,0);
             oled_write(24);
             print_str(buf);
 
-            if (rx < 1000) sprintf(buf, "%03dB", rx);
-            else if (rx > 1000000) sprintf(buf, "%03dM", rx/1000000);
-            else sprintf(buf, "%03dK", rx/1000);
+	    strcpy(buf, rx_str);
             setCursor((127-(strlen(buf)+1)*11)/2,16);
             oled_write(25);
             print_str(buf);
             break;
         case MERGE:
             setTextSize(1);
-            if (tx < 1000) sprintf(buf, "%03dB ", tx);
-            else if (tx > 1000000) sprintf(buf, "%03dM", tx/1000000);
-            else sprintf(buf, "%03dK ", tx/1000);
+	    strcpy(buf, tx_str);
             setCursor((127-(2*strlen(buf)-1)*6)/2-4, y+4);
             oled_write(24);
             print_str(buf);
 
-            if (rx < 1000) sprintf(buf, "%03dB", rx);
-            else if (rx > 1000000) sprintf(buf, "%03dM", rx/1000000);
-            else sprintf(buf, "%03dK", rx/1000);
+	    strcpy(buf, rx_str);
             oled_write(25);
             print_str(buf);
             break;
@@ -560,25 +571,21 @@ void testnetspeed(int mode, int y)
             setTextSize(1);
             setCursor(display_offset, y);
             oled_write(24);
-            if (tx < 1000) sprintf(buf, "%03dB ", tx);
-            else if (tx > 1000000) sprintf(buf, "%03dM", tx/1000000);
-            else sprintf(buf, "%03dK ", tx/1000);
+	    strcpy(buf, tx_str);
             print_str(buf);
 
             oled_write(25);
-            if (rx < 1000) sprintf(buf, "%03dB", rx);
-            else if (rx > 1000000) sprintf(buf, "%03dM", rx/1000000);
-            else sprintf(buf, "%03dK", rx/1000);
+	    strcpy(buf, rx_str);
             print_str(buf);
-        }
     }
 }
+
 void testcpu(int y)
 {
 //freq
     setTextSize(1);
     setCursor(display_offset, y);
-    if((fp=popen(FREQPATH,"r")) != NULL)
+    if((fp=fopen(FREQPATH,"r")) != NULL)
     {
         fgets(content_buff,FREQSIZE,fp);
         fclose(fp);
@@ -605,8 +612,8 @@ void testprintinfo()
     setTextSize(1);
     setTextColor(WHITE); 
     setCursor(0,0);    
-//DATE
    
+//date
     time_t rawtime;
     time_t curtime;
     uint8_t timebuff[TIMESIZE];
@@ -617,17 +624,11 @@ void testprintinfo()
     print_strln(buf);
     
     //br-lan ip
-    if((fp=popen(IPPATH,"r"))!=NULL)
-    {
-        fscanf(fp,"%s",content_buff);
-        fclose(fp);
-        //ipbuff[strlen(ipbuff)-1]=32;
-        sprintf(buf,"IP:%s",content_buff);
-        print_strln(buf);
-    }
+    sprintf(buf,"IP:%s", get_ip_addr(LAN_IFNAME));
+    print_strln(buf);
 
     //CPU temp
-    if((fp=popen(FREQPATH,"r")) != NULL)
+    if((fp=fopen(FREQPATH,"r")) != NULL)
     {
         fgets(content_buff,FREQSIZE,fp);
         fclose(fp);
@@ -643,8 +644,4 @@ void testprintinfo()
         sprintf(buf,"CPU temp:%.2f C",atoi(content_buff)/100.0);
         print_strln(buf);
     }
-
-
-
 }
-
