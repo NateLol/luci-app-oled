@@ -30,11 +30,6 @@ start() {
 		fi
 	fi
 
-	#crontab daemon
-	if ! grep "/etc/init.d/oled \+restart" /etc/crontabs/root >/dev/null 2>&1; then
-		echo "*/5 * * * * /etc/init.d/oled restart >/dev/null 2>&1" >> /etc/crontabs/root
-	fi
-
 	date=$(uci get oled.@oled[0].date)
 	lanip=$(uci get oled.@oled[0].lanip)
 	cputemp=$(uci get oled.@oled[0].cputemp)
