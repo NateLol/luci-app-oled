@@ -527,7 +527,7 @@ void testnetspeed(int mode, int y, unsigned long int rx, unsigned long int tx)
 
     if (tx < KB_BYTES) {
         sprintf(tx_str, "% 4dB ", tx);
-    } else if (tx > MB_BYTES) {
+    } else if (tx >= MB_BYTES) {
         sprintf(tx_str, "% 4dM ", tx / MB_BYTES);
     } else {
         sprintf(tx_str, "% 4dK ", tx / KB_BYTES);
@@ -535,7 +535,7 @@ void testnetspeed(int mode, int y, unsigned long int rx, unsigned long int tx)
 
     if (rx < KB_BYTES) {
         sprintf(rx_str, "% 4dB ", rx);
-    } else if (rx > MB_BYTES) {
+    } else if (rx >= MB_BYTES) {
         sprintf(rx_str, "% 4dM ", rx / MB_BYTES);
     } else {
         sprintf(rx_str, "% 4dK ", rx / KB_BYTES);
