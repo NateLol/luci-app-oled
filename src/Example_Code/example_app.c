@@ -471,7 +471,7 @@ void testcputemp(int mode, int y)
 {
     if((fp=fopen(TEMPPATH,"r"))!=NULL)
     {
-        fgets(content_buff,TEMPSIZE,fp);
+        if(fgets(content_buff,TEMPSIZE,fp));
         fclose(fp);
         switch (mode) 
 	{
@@ -501,7 +501,7 @@ void testcpufreq(int mode, int y)
 {
     if((fp=fopen(FREQPATH,"r")) != NULL)
     {
-        fgets(content_buff,FREQSIZE,fp);
+        if(fgets(content_buff,FREQSIZE,fp));
         fclose(fp);
         switch(mode) 
 	{
@@ -525,19 +525,19 @@ void testnetspeed(int mode, int y, unsigned long int rx, unsigned long int tx)
     char tx_str[8], rx_str[8];
 
     if (tx < KB_BYTES) {
-        sprintf(tx_str, "% 4dB ", tx);
+        sprintf(tx_str, "%4dB ", (unsigned int)tx);
     } else if (tx >= MB_BYTES) {
-        sprintf(tx_str, "% 4dM ", tx / MB_BYTES);
+        sprintf(tx_str, "%4dM ", (unsigned int)tx / MB_BYTES);
     } else {
-        sprintf(tx_str, "% 4dK ", tx / KB_BYTES);
+        sprintf(tx_str, "%4dK ", (unsigned int)tx / KB_BYTES);
     }
 
     if (rx < KB_BYTES) {
-        sprintf(rx_str, "% 4dB ", rx);
+        sprintf(rx_str, "%4dB ", (unsigned int)rx);
     } else if (rx >= MB_BYTES) {
-        sprintf(rx_str, "% 4dM ", rx / MB_BYTES);
+        sprintf(rx_str, "%4dM ", (unsigned int)rx / MB_BYTES);
     } else {
-        sprintf(rx_str, "% 4dK ", rx / KB_BYTES);
+        sprintf(rx_str, "%4dK ", (unsigned int)rx / KB_BYTES);
     }
 
 //printf("rxspeed: %s txspeed: %s\n", rx_str, tx_str);
@@ -586,7 +586,7 @@ void testcpu(int y)
     setCursor(display_offset, y);
     if((fp=fopen(FREQPATH,"r")) != NULL)
     {
-        fgets(content_buff,FREQSIZE,fp);
+        if(fgets(content_buff,FREQSIZE,fp));
         fclose(fp);
         sprintf(buf,"CPU:%4dMHz ", atoi(content_buff)/1000);
         print_str(buf);
@@ -596,7 +596,7 @@ void testcpu(int y)
 //temp
     if((fp=fopen(TEMPPATH,"r"))!=NULL)
     {
-        fgets(content_buff,TEMPSIZE,fp);
+        if(fgets(content_buff,TEMPSIZE,fp));
         fclose(fp);
     	sprintf(buf, "%.2f",atoi(content_buff)/100.0); 
     	print_str(buf);
@@ -629,7 +629,7 @@ void testprintinfo()
     //CPU temp
     if((fp=fopen(FREQPATH,"r")) != NULL)
     {
-        fgets(content_buff,FREQSIZE,fp);
+        if(fgets(content_buff,FREQSIZE,fp));
         fclose(fp);
         sprintf(buf,"CPU freq:%d MHz ",atoi(content_buff)/1000);
         print_strln(buf);
@@ -638,7 +638,7 @@ void testprintinfo()
     //cpu freq
     if((fp=fopen(TEMPPATH,"r"))!=NULL)
     {
-        fgets(content_buff,TEMPSIZE,fp);
+        if(fgets(content_buff,TEMPSIZE,fp));
         fclose(fp);
         sprintf(buf,"CPU temp:%.2f C",atoi(content_buff)/100.0);
         print_strln(buf);

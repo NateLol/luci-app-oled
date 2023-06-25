@@ -40,7 +40,7 @@ static float get_uptime() {
 	FILE *fp1;
 	float uptime = 0, idletime = 0;
 	if((fp1=fopen("/proc/uptime", "r")) != NULL) {
-		fscanf(fp1, "%f %f", &uptime, &idletime);
+		if(fscanf(fp1, "%f %f", &uptime, &idletime));
 		fclose(fp1);
 	}
 	return uptime;
@@ -61,7 +61,7 @@ static void *pth_netspeed(char *ifname) {
 	while(1) {
 		uptime = get_uptime();
 		if((fp1=fopen(rxbytes_path, "r")) != NULL) {
-			fscanf(fp1, "%llu", &llu_bytes);
+			if(fscanf(fp1, "%llu", &llu_bytes));
 			fclose(fp1);
 			rx_bytes = llu_bytes % ULONG_MAX;
 		} else {
@@ -71,7 +71,7 @@ static void *pth_netspeed(char *ifname) {
 		}
 
 		if((fp1=fopen(txbytes_path, "r")) != NULL) {
-			fscanf(fp1, "%llu", &llu_bytes);
+			if(fscanf(fp1, "%llu", &llu_bytes));
 			fclose(fp1);
 			tx_bytes = llu_bytes % ULONG_MAX;
 		} else {
