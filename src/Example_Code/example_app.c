@@ -41,7 +41,6 @@ SOFTWARE.
 #include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <net/if.h>
-#include <unistd.h>
 #include <arpa/inet.h>
 #include "SSD1306_OLED.h"
 #include "example_app.h"
