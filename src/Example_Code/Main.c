@@ -36,9 +36,6 @@ static pthread_mutex_t __mutex_shared_variable = (pthread_mutex_t) PTHREAD_MUTEX
 /* thread id */
 static pthread_t tid = 0;
 
-static unsigned long int last_rx_bytes=0;
-static unsigned long int last_tx_bytes=0;
-
 static float get_uptime() {
 	FILE *fp1;
 	float uptime = 0, idletime = 0;
@@ -53,7 +50,7 @@ static void *pth_netspeed(char *ifname) {
 	char rxbytes_path[80];
 	char txbytes_path[80];
 	unsigned long long int llu_bytes;
-	unsigned long int rx_bytes = 0, tx_bytes = 0;
+	unsigned long int rx_bytes = 0, tx_bytes = 0, last_rx_bytes = 0, last_tx_bytes=0;
 	unsigned long int rx_speed, tx_speed;
 	FILE *fp1;
 	float last_uptime, uptime;
