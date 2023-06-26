@@ -18,6 +18,10 @@ PKG_LICENSE:=GPLv3
 PKG_LINCESE_FILES:=LICENSE
 PKF_MAINTAINER:=natelol <natelol@github.com>
 
+define Package/luci-app-oled/conffiles
+/etc/config/oled
+endef
+
 include $(TOPDIR)/feeds/luci/luci.mk
 
 # call BuildPackage - OpenWrt buildroot signature
