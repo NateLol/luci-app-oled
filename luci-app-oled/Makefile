@@ -11,12 +11,12 @@ LUCI_Title:=LuCI support for ssd1306 0.91\' 138x32 display
 LUCI_DEPENDS:=+i2c-tools +coreutils-nohup +libuci
 LUCI_PKGARCH:=$(if $(realpath src/Makefile),,all)
 PKG_NAME:=luci-app-oled
-PKG_VERSION:=20230625
+PKG_VERSION:=20230702
 PKG_RELEASE:=1
 
 PKG_LICENSE:=GPLv3
 PKG_LINCESE_FILES:=LICENSE
-PKF_MAINTAINER:=natelol <natelol@github.com>
+PKG_MAINTAINER:=natelol <natelol@github.com>
 
 define Package/luci-app-oled/conffiles
 /etc/config/oled

@@ -153,10 +153,6 @@ int main(int argc, char* argv[])
     int needinit=atoi(argv[23]);
     unsigned long int rx_speed, tx_speed;
 
-    if(netspeed == 1 && strcmp(eth, "") != 0) {
-        pthread_create(&tid, NULL, (void *)pth_netspeed, eth);
-    }
-
     if(path == NULL)
         path = I2C_DEV0_PATH;
 
@@ -171,10 +167,14 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
+    if(netspeed == 1 && strcmp(eth, "") != 0) {
+        pthread_create(&tid, NULL, (void *)pth_netspeed, eth);
+    }
+
     /* Register the Alarm Handler */
     signal(SIGALRM, ALARMhandler);
     signal(SIGINT, BreakDeal);
-    //signal(SIGTERM, BreakDeal);
+    signal(SIGTERM, BreakDeal);
 
     /* Run SDD1306 Initialization Sequence */
     if (needinit==1)
