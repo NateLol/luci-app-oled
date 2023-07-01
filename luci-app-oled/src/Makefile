@@ -11,9 +11,10 @@ CPPFLAGS := -I SSD1306_OLED_Library -I I2C_Library
 ifndef CFLAGS
 CFLAGS := -O2
 endif
+LDFLAGS := -lpthread
 
 oled: $(OBJS)
-	$(CC) $^ -o $@
+	$(CC) $^ -o $@ $(LDFLAGS)
 
 clean:
 	rm -rf oled $(OBJS)
