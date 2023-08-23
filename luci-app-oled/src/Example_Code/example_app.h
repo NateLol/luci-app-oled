@@ -25,7 +25,7 @@ void testdrawbitmap_eg();
 void deeplyembedded_credits();
 void testprintinfo();
 void testdate(int mode, int y);
-void testlanip(int mode, int y);
+void testip(int mode, int y, char *ifname);
 void testcpufreq(int mode, int y);
 void testcputemp(int mode, int y);
 void testnetspeed(int mode, int y, unsigned long int rx, unsigned long int tx);

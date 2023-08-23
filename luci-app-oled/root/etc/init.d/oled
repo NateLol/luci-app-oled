@@ -1,6 +1,7 @@
 #!/bin/sh /etc/rc.common
 
 START=88
+STOP=11
 USE_PROCD=1
 PROG=/usr/bin/oled
 
@@ -9,49 +10,7 @@ get_section() {
 	return 1
 }
 
-schedule_oled() {
-	local section="$1"
-	local run=1
-
-	local autoswitch ; config_get autoswitch "$section" autoswitch
-	local from ; config_get from "$section" from
-	local to ; config_get to "$section" to
-
-	sed -i '/ \/etc\/init\.d\/oled /d' /etc/crontabs/root >/dev/null 2>&1
-	if [[ ${autoswitch} -eq 1 ]]; then
-		local fhour=$(($from / 60))
-		local fmin=$(($from % 60))
-		if [[ $fhour -ge 24 ]] ;then
-			fhour=0
-			fmin=0
-		fi
-		local thour=$(($to / 60))
-		local tmin=$(($to % 60))
-		if [[ $thour -ge 24 ]] ;then
-			thour=0
-			tmin=0
-		fi
-		if [[ $fhour -ne $thour || $fmin -ne $tmin ]]; then
-			#crontab daemon
-			[ -n "`tail -c1 /etc/crontabs/root`" ] && echo >> /etc/crontabs/root
-			echo "$tmin $thour * * * /etc/init.d/oled stop >/dev/null 2>&1" >> /etc/crontabs/root
-			echo "$fmin $fhour * * * /etc/init.d/oled start cron >/dev/null 2>&1" >> /etc/crontabs/root
-			local hour=$(date +"%H")
-			local min=$(date +"%M")
-			local ihour=`expr $hour + 0`
-			local imin=`expr $min + 0`
-			local now=$(($ihour*60+$imin))
-			if [[ $now -lt $from || $now -gt $to ]]; then
-				run=0
-			fi
-		fi
-	fi
-	/etc/init.d/cron reload
-	return $run
-}
-
 start_service() {
-	local cron="$1"
 	local mainsection
 	config_load oled
 	config_foreach get_section oled mainsection
@@ -62,36 +21,91 @@ start_service() {
 		return 1
 	fi
 
-	[[ -z "$cron" ]] && schedule_oled "$section" && {
-		echo "skip start, wait for crontab" >&2
-		return 0
-	}
-
-	local date ; config_get date "$section" date
-	local lanip ; config_get lanip "$section" lanip
-	local cputemp ; config_get cputemp "$section" cputemp
-	local cpufreq ; config_get cpufreq "$section" cpufreq
-	local netspeed ; config_get netspeed "$section" netspeed
-	local time ; config_get time "$section" time
-	local drawline ; config_get drawline "$section" drawline
-	local drawrect ; config_get drawrect "$section" drawrect
-	local fillrect ; config_get fillrect "$section" fillrect
-	local drawcircle ; config_get drawcircle "$section" drawcircle
-	local drawroundrect ; config_get drawroundrect "$section" drawroundrect
-	local fillroundrect ; config_get fillroundrect "$section" fillroundrect
-	local drawtriangle ; config_get drawtriangle "$section" drawtriangle
-	local filltriangle ; config_get filltriangle "$section" filltriangle
-	local displaybitmap ; config_get displaybitmap "$section" displaybitmap
-	local displayinvertnormal ; config_get displayinvertnormal "$section" displayinvertnormal
-	local drawbitmapeg ; config_get drawbitmapeg "$section" drawbitmapeg
-	local rotate ; config_get rotate "$section" rotate
-	local scroll ; config_get scroll "$section" scroll
-	local text ; config_get text "$section" text
-	local netsource ; config_get netsource "$section" netsource
-	local path ; config_get path "$section" path
-
 	procd_open_instance
-	procd_set_param command ${PROG} ${date} ${lanip} ${cputemp} ${cpufreq} ${netspeed} ${time} ${drawline} ${drawrect} ${fillrect} ${drawcircle} ${drawroundrect} ${fillroundrect} ${drawtriangle} ${filltriangle} ${displaybitmap} ${displayinvertnormal}  ${drawbitmapeg} ${scroll} "${text}" "${netsource}" "${path}" ${rotate} 1
+	procd_set_param command ${PROG}
+	procd_append_param command --needInit
+
+	local param
+	# default /dev/i2c-0
+	config_get param "$section" path
+	[ "$param" != "" ]  && procd_append_param command --i2cDevPath="$param"
+
+	# from begin_minitues to end_minitues
+	# default 0 - 1440
+	config_get param "$section" from
+	[ "$param" != "" ]  && procd_append_param command --from="$param"
+	config_get param "$section" to
+	[ "$param" != "" ]  && procd_append_param command --to="$param"
+
+	config_get param "$section" date
+	[ "$param" == "1" ] && procd_append_param command --displayDate
+
+	config_get param "$section" lanip
+	[ "$param" == "1" ] && procd_append_param command --displayIp
+	config_get param "$section" ipifname
+	if [ "$param" != "" ];then
+		procd_append_param command --ipIfName="$param"
+	else
+		procd_append_param command --ipIfName="br-lan"
+	fi
+
+	config_get param "$section" cputemp
+	[ "$param" == "1" ] && procd_append_param command --displayCpuTemp
+
+	config_get param "$section" cpufreq
+	[ "$param" == "1" ] && procd_append_param command --displayCpuFreq
+
+	config_get param "$section" netspeed
+	[ "$param" == "1" ] && procd_append_param command --displayNetSpeed
+	# default eth0
+	config_get param "$section" netsource
+	[ "$param" != "" ]  && procd_append_param command --speedIfName="$param"
+
+	# default 60
+	config_get param "$section" time
+	[ "$param" != "" ]  && procd_append_param command --interval="$param"
+
+	config_get param "$section" drawline
+	[ "$param" == "1" ] && procd_append_param command --drawLine
+
+	config_get param "$section" drawrect
+	[ "$param" == "1" ] && procd_append_param command --drawRect
+
+	config_get param "$section" fillrect
+	[ "$param" == "1" ] && procd_append_param command --fillRect
+
+	config_get param "$section" drawcircle
+	[ "$param" == "1" ] && procd_append_param command --drawCircle
+
+	config_get param "$section" drawroundrect
+	[ "$param" == "1" ] && procd_append_param command --drawRoundCircle
+
+	config_get param "$section" fillroundrect
+	[ "$param" == "1" ] && procd_append_param command --fillRoundCircle
+
+	config_get param "$section" drawtriangle
+	[ "$param" == "1" ] && procd_append_param command --drawTriangle
+
+	config_get param "$section" filltriangle
+	[ "$param" == "1" ] && procd_append_param command --fillTriangle
+
+	config_get param "$section" displaybitmap
+	[ "$param" == "1" ] && procd_append_param command --displayBitmap
+
+	config_get param "$section" drawbitmapeg
+	[ "$param" == "1" ] && procd_append_param command --drawBitmapEg
+
+	config_get param "$section" displayinvertnormal
+	[ "$param" == "1" ] && procd_append_param command --displayInvertNormal
+
+	config_get param "$section" rotate
+	[ "$param" == "1" ] && procd_append_param command --rotate
+
+	config_get param "$section" scroll
+	[ "$param" == "1" ] && procd_append_param command --scroll
+	config_get param "$section" text
+	[ "$param" != "" ]  && procd_append_param command --scrollText="$param"
+
 	procd_set_param respawn
 	procd_close_instance
 }

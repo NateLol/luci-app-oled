@@ -65,7 +65,6 @@ SOFTWARE.
 #define FREQSIZE 8
 #define FREQPATH "/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq"
 // ip
-#define LAN_IFNAME "br-lan"
 #define IPSIZE 20
 
 /* Extern volatile */
@@ -410,18 +409,18 @@ char *get_ip_addr(char *ifname) {
 	return inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr);
 }
 
-void testlanip(int mode, int y) {
+void testip(int mode, int y, char *ifname) {
 	setTextSize(1);
 	switch (mode) {
 		case CENTER:
 			setTextSize(1);
-			sprintf(buf, "%s", get_ip_addr(LAN_IFNAME));
+			sprintf(buf, "%s", get_ip_addr(ifname));
 			setCursor((127 - strlen(buf) * 6) / 2, y + 4);
 			break;
 
 		case FULL:
 			setTextSize(1);
-			sprintf(buf, "IP:%s", get_ip_addr(LAN_IFNAME));
+			sprintf(buf, "IP:%s", get_ip_addr(ifname));
 			setCursor(display_offset, y);
 	}
 	print_strln(buf);
@@ -580,7 +579,7 @@ void testprintinfo() {
 	print_strln(buf);
 
 	// br-lan ip
-	sprintf(buf, "IP:%s", get_ip_addr(LAN_IFNAME));
+	sprintf(buf, "IP:%s", get_ip_addr("br-lan"));
 	print_strln(buf);
 
 	// CPU temp
