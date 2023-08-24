@@ -323,6 +323,7 @@ void BreakDeal(int sig) {
 int main(int argc, char *argv[]) {
 	int option;
 	int option_index = 0;
+	int effect_sum, info_sum;
 	char *config_file = NULL;
 	unsigned long int rx_speed, tx_speed;
 	struct st_config *stcfg;
@@ -359,7 +360,7 @@ int main(int argc, char *argv[]) {
 	    {"to", required_argument, 0, 't'},
 	    {0, 0, 0, 0}};
 
-	stcfg = (struct st_config *)malloc(sizeof(struct st_config));
+	stcfg = malloc(sizeof(struct st_config));
 	memset(stcfg, 0, sizeof(struct st_config));
 
 	/* set default value for config */
@@ -379,6 +380,7 @@ int main(int argc, char *argv[]) {
 
 	stcfg->i2c_dev_path = malloc(sizeof(char) * 20);
 	sprintf(stcfg->i2c_dev_path, "%s", I2C_DEV0_PATH);
+
 	/* The end of set default value for config */
 
 	while ((option = getopt_long(argc, argv,
@@ -498,8 +500,21 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	if (stcfg->i2c_dev_path == NULL)
-		sprintf(stcfg->i2c_dev_path, "%s", I2C_DEV0_PATH);
+	/* Check the items that can be displayed */
+	effect_sum = stcfg->scroll + stcfg->draw_line + stcfg->draw_rect +
+		     stcfg->fill_rect + stcfg->draw_circle +
+		     stcfg->draw_round_circle + stcfg->fill_round_circle +
+		     stcfg->draw_triangle + stcfg->fill_triangle +
+		     stcfg->disp_bitmap + stcfg->disp_invert_normal +
+		     stcfg->draw_bitmap_eg;
+	info_sum = stcfg->disp_date + stcfg->disp_ip + stcfg->disp_cpu_freq +
+		   stcfg->disp_cpu_temp + stcfg->disp_net_speed;
+	if (effect_sum == 0 && info_sum == 0) {
+		printf(
+		    "Nothing to display, check cfg file or cmd line args, "
+		    "bye!\n");
+		exit(EXIT_SUCCESS);
+	}
 
 	/* Initialize I2C bus and connect to the I2C Device */
 	if (init_i2c_dev(stcfg->i2c_dev_path, SSD1306_OLED_ADDR) == 0) {
@@ -511,6 +526,7 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
+	/* Create a network speed calculation thread */
 	if (stcfg->disp_net_speed == 1 &&
 	    strcmp(stcfg->speed_if_name, "") != 0) {
 		pthread_create(&tid, NULL, (void *)pth_netspeed,
@@ -542,6 +558,7 @@ int main(int argc, char *argv[]) {
 		stcfg->to = temp;
 	}
 
+	/* Create a timer switch monitoring thread */
 	pthread_create(&tid1, NULL, (void *)pth_time_check, (void *)stcfg);
 
 	/* Register the Alarm Handler */
@@ -557,106 +574,105 @@ int main(int argc, char *argv[]) {
 
 	// draw many lines
 	while (1) {
-		if (get_sleep_flag() == 0 && stcfg->scroll) {
-			testscrolltext(stcfg->scroll_text);
-			usleep(DISPLAY_INTERVAL);
-			clearDisplay();
+		if (effect_sum > 0) {
+			if (get_sleep_flag() == 0 && stcfg->scroll) {
+				testscrolltext(stcfg->scroll_text);
+				usleep(DISPLAY_INTERVAL);
+				clearDisplay();
+			}
+
+			if (get_sleep_flag() == 0 && stcfg->draw_line) {
+				testdrawline();
+				usleep(DISPLAY_INTERVAL);
+				clearDisplay();
+			}
+
+			// draw rectangles
+			if (get_sleep_flag() == 0 && stcfg->draw_rect) {
+				testdrawrect();
+				usleep(DISPLAY_INTERVAL);
+				clearDisplay();
+			}
+
+			// draw multiple rectangles
+			if (get_sleep_flag() == 0 && stcfg->fill_rect) {
+				testfillrect();
+				usleep(DISPLAY_INTERVAL);
+				clearDisplay();
+			}
+
+			// draw mulitple circles
+			if (get_sleep_flag() == 0 && stcfg->draw_circle) {
+				testdrawcircle();
+				usleep(DISPLAY_INTERVAL);
+				clearDisplay();
+			}
+
+			// draw a white circle, 10 pixel radius
+			if (get_sleep_flag() == 0 && stcfg->draw_round_circle) {
+				testdrawroundrect();
+				usleep(DISPLAY_INTERVAL);
+				clearDisplay();
+			}
+
+			// Fill the round rectangle
+			if (get_sleep_flag() == 0 && stcfg->fill_round_circle) {
+				testfillroundrect();
+				usleep(DISPLAY_INTERVAL);
+				clearDisplay();
+			}
+
+			// Draw triangles
+			if (get_sleep_flag() == 0 && stcfg->draw_triangle) {
+				testdrawtriangle();
+				usleep(DISPLAY_INTERVAL);
+				clearDisplay();
+			}
+			// Fill triangles
+			if (get_sleep_flag() == 0 && stcfg->fill_triangle) {
+				testfilltriangle();
+				usleep(DISPLAY_INTERVAL);
+				clearDisplay();
+			}
+
+			// Display miniature bitmap
+			if (get_sleep_flag() == 0 && stcfg->disp_bitmap) {
+				display_bitmap();
+				Display();
+				usleep(DISPLAY_INTERVAL);
+			};
+
+			// Display Inverted image and normalize it back
+			if (get_sleep_flag() == 0 &&
+			    stcfg->disp_invert_normal) {
+				display_invert_normal();
+				clearDisplay();
+				usleep(DISPLAY_INTERVAL);
+				Display();
+			}
+
+			// Generate Signal after 20 Seconds
+
+			// draw a bitmap icon and 'animate' movement
+			if (get_sleep_flag() == 0 && stcfg->draw_bitmap_eg) {
+				alarm(10);
+				flag = 0;
+				testdrawbitmap_eg();
+				clearDisplay();
+				usleep(DISPLAY_INTERVAL);
+				Display();
+			}
 		}
 
-		if (get_sleep_flag() == 0 && stcfg->draw_line) {
-			testdrawline();
-			usleep(DISPLAY_INTERVAL);
-			clearDisplay();
-		}
-
-		// draw rectangles
-		if (get_sleep_flag() == 0 && stcfg->draw_rect) {
-			testdrawrect();
-			usleep(DISPLAY_INTERVAL);
-			clearDisplay();
-		}
-
-		// draw multiple rectangles
-		if (get_sleep_flag() == 0 && stcfg->fill_rect) {
-			testfillrect();
-			usleep(DISPLAY_INTERVAL);
-			clearDisplay();
-		}
-
-		// draw mulitple circles
-		if (get_sleep_flag() == 0 && stcfg->draw_circle) {
-			testdrawcircle();
-			usleep(DISPLAY_INTERVAL);
-			clearDisplay();
-		}
-
-		// draw a white circle, 10 pixel radius
-		if (get_sleep_flag() == 0 && stcfg->draw_round_circle) {
-			testdrawroundrect();
-			usleep(DISPLAY_INTERVAL);
-			clearDisplay();
-		}
-
-		// Fill the round rectangle
-		if (get_sleep_flag() == 0 && stcfg->fill_round_circle) {
-			testfillroundrect();
-			usleep(DISPLAY_INTERVAL);
-			clearDisplay();
-		}
-
-		// Draw triangles
-		if (get_sleep_flag() == 0 && stcfg->draw_triangle) {
-			testdrawtriangle();
-			usleep(DISPLAY_INTERVAL);
-			clearDisplay();
-		}
-		// Fill triangles
-		if (get_sleep_flag() == 0 && stcfg->fill_triangle) {
-			testfilltriangle();
-			usleep(DISPLAY_INTERVAL);
-			clearDisplay();
-		}
-
-		// Display miniature bitmap
-		if (get_sleep_flag() == 0 && stcfg->disp_bitmap) {
-			display_bitmap();
-			Display();
-			usleep(DISPLAY_INTERVAL);
-		};
-
-		// Display Inverted image and normalize it back
-		if (get_sleep_flag() == 0 && stcfg->disp_invert_normal) {
-			display_invert_normal();
-			clearDisplay();
-			usleep(DISPLAY_INTERVAL);
-			Display();
-		}
-
-		// Generate Signal after 20 Seconds
-
-		// draw a bitmap icon and 'animate' movement
-		if (get_sleep_flag() == 0 && stcfg->draw_bitmap_eg) {
-			alarm(10);
-			flag = 0;
-			testdrawbitmap_eg();
-			clearDisplay();
-			usleep(DISPLAY_INTERVAL);
-			Display();
-		}
-
-		// setCursor(0,0);
-		setTextColor(WHITE);
-
-		// info display
-		int sum = stcfg->disp_date + stcfg->disp_ip +
-			  stcfg->disp_cpu_freq + stcfg->disp_cpu_temp +
-			  stcfg->disp_net_speed;
-		if (sum == 0) {
+		if (info_sum == 0) {
 			clearDisplay();
 			Display();
 			usleep(DISPLAY_INTERVAL);
 			continue;
 		}
+
+		// setCursor(0,0);
+		setTextColor(WHITE);
 
 		for (int i = 1; i < stcfg->interval; i++) {
 			if (get_sleep_flag() == 1) {
@@ -664,7 +680,7 @@ int main(int argc, char *argv[]) {
 				continue;
 			}
 
-			if (sum == 1) {	 // only one item for display
+			if (info_sum == 1) {	 // only one item for display
 				if (stcfg->disp_date) testdate(CENTER, 8);
 				if (stcfg->disp_ip)
 					testip(CENTER, 8, stcfg->ip_if_name);
@@ -689,7 +705,7 @@ int main(int argc, char *argv[]) {
 				Display();
 				usleep(DISPLAY_INTERVAL);
 				clearDisplay();
-			} else if (sum == 2) {	// two items for display
+			} else if (info_sum == 2) {	// two items for display
 				if (stcfg->disp_date) {
 					testdate(CENTER,
 						 16 * (stcfg->disp_date - 1));
@@ -820,11 +836,10 @@ int main(int argc, char *argv[]) {
 				usleep(DISPLAY_INTERVAL);
 				clearDisplay();
 			}
-		} // for
-	} //while
+		}  // for
+	}	   // while
 
-	if (stcfg->disp_net_speed == 1 &&
-	    strcmp(stcfg->speed_if_name, "") != 0) {
+	if (tid != 0) {
 		pthread_cancel(tid);
 		pthread_join(tid, NULL);
 	}
