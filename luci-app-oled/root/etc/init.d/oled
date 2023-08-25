@@ -78,10 +78,10 @@ start_service() {
 	[ "$param" == "1" ] && procd_append_param command --drawCircle
 
 	config_get param "$section" drawroundrect
-	[ "$param" == "1" ] && procd_append_param command --drawRoundCircle
+	[ "$param" == "1" ] && procd_append_param command --drawRoundRect
 
 	config_get param "$section" fillroundrect
-	[ "$param" == "1" ] && procd_append_param command --fillRoundCircle
+	[ "$param" == "1" ] && procd_append_param command --fillRoundRect
 
 	config_get param "$section" drawtriangle
 	[ "$param" == "1" ] && procd_append_param command --drawTriangle

@@ -43,8 +43,8 @@ struct st_config {
 	unsigned int draw_rect;
 	unsigned int fill_rect;
 	unsigned int draw_circle;
-	unsigned int draw_round_circle;
-	unsigned int fill_round_circle;
+	unsigned int draw_round_rect;
+	unsigned int fill_round_rect;
 	unsigned int draw_triangle;
 	unsigned int fill_triangle;
 	unsigned int disp_bitmap;
@@ -86,11 +86,11 @@ Options:\n\
   --displayCpuFreq or -F            Turn on the CPU frequency.\n\
 \n\
   --drawLine or -L                  Turn on draw line.\n\
-  --drawRect or -W                  Turn on draw rect.\n\
-  --fillRect or -w                  Turn on fill rect.\n\
+  --drawRect or -W                  Turn on draw rectangle.\n\
+  --fillRect or -w                  Turn on fill rectangle.\n\
   --drawCircle or -C                Turn on draw circle.\n\
-  --drawRoundCircle or -R           Turn on draw round circle.\n\
-  --fillRoundCircle or -r           Turn on fill round circle.\n\
+  --drawRoundRect or -R             Turn on draw round rectangle.\n\
+  --fillRoundRect or -r             Turn on fill round rectangle.\n\
   --drawTriangle or -G              Turn on draw triangle.\n\
   --fillTriangle or -g              Turn on fill triangle.\n\
   --displayBitmap or -B             Turn on display bitmap.\n\
@@ -137,8 +137,8 @@ static void read_conf_file(const char *filename, struct st_config *stcfg) {
 	config_lookup_int(&cfg, "drawRect", &stcfg->draw_rect);
 	config_lookup_int(&cfg, "fillRect", &stcfg->fill_rect);
 	config_lookup_int(&cfg, "drawCircle", &stcfg->draw_circle);
-	config_lookup_int(&cfg, "drawRoundCircle", &stcfg->draw_round_circle);
-	config_lookup_int(&cfg, "fillRoundCircle", &stcfg->fill_round_circle);
+	config_lookup_int(&cfg, "drawRoundRect", &stcfg->draw_round_rect);
+	config_lookup_int(&cfg, "fillRoundRect", &stcfg->fill_round_rect);
 	config_lookup_int(&cfg, "drawTriangle", &stcfg->draw_triangle);
 	config_lookup_int(&cfg, "fillTriangle", &stcfg->fill_triangle);
 	config_lookup_int(&cfg, "displayBitmap", &stcfg->disp_bitmap);
@@ -353,8 +353,8 @@ int main(int argc, char *argv[]) {
 	    {"drawRect", no_argument, 0, 'W'},
 	    {"fillRect", no_argument, 0, 'w'},
 	    {"drawCircle", no_argument, 0, 'C'},
-	    {"drawRoundCircle", no_argument, 0, 'R'},
-	    {"fillRoundCircle", no_argument, 0, 'r'},
+	    {"drawRoundRect", no_argument, 0, 'R'},
+	    {"fillRoundRect", no_argument, 0, 'r'},
 	    {"drawTriangle", no_argument, 0, 'G'},
 	    {"fillTriangle", no_argument, 0, 'g'},
 	    {"displayBitmap", no_argument, 0, 'B'},
@@ -464,10 +464,10 @@ int main(int argc, char *argv[]) {
 				stcfg->draw_circle = 1;
 				break;
 			case 'R':
-				stcfg->draw_round_circle = 1;
+				stcfg->draw_round_rect = 1;
 				break;
 			case 'r':
-				stcfg->fill_round_circle = 1;
+				stcfg->fill_round_rect = 1;
 				break;
 			case 'G':
 				stcfg->draw_triangle = 1;
@@ -511,7 +511,7 @@ int main(int argc, char *argv[]) {
 	/* Check the items that can be displayed */
 	effect_sum = stcfg->scroll + stcfg->draw_line + stcfg->draw_rect +
 		     stcfg->fill_rect + stcfg->draw_circle +
-		     stcfg->draw_round_circle + stcfg->fill_round_circle +
+		     stcfg->draw_round_rect + stcfg->fill_round_rect +
 		     stcfg->draw_triangle + stcfg->fill_triangle +
 		     stcfg->disp_bitmap + stcfg->disp_invert_normal +
 		     stcfg->draw_bitmap_eg;
@@ -643,7 +643,7 @@ int main(int argc, char *argv[]) {
 			}
 
 			// draw a white circle, 10 pixel radius
-			if (stcfg->draw_round_circle) {
+			if (stcfg->draw_round_rect) {
 				// get oled control
 				pthread_mutex_lock(&__control_oled);
 				testdrawroundrect();
@@ -655,7 +655,7 @@ int main(int argc, char *argv[]) {
 			}
 
 			// Fill the round rectangle
-			if (stcfg->fill_round_circle) {
+			if (stcfg->fill_round_rect) {
 				// get oled control
 				pthread_mutex_lock(&__control_oled);
 				testfillroundrect();
