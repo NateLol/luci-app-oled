@@ -26,7 +26,9 @@
 
 #define NETSPEED_INTERVAL 1000000
 #define DISPLAY_INTERVAL 1000000
-#define TIME_CHECK_INTERVAL 5000000
+#define TINY_INTERVAL 100000
+#define TIME_CHECK_INTERVAL_SHORT 1000000
+#define TIME_CHECK_INTERVAL_LONG 60000000
 
 struct st_config {
 	unsigned int disp_date;
@@ -177,20 +179,19 @@ volatile unsigned char flag = 0;
 /** Shared variable by the threads */
 static unsigned long int __shared_rx_speed = 0;
 static unsigned long int __shared_tx_speed = 0;
-static int __shared_sleeped = 0;
 
 /** Mutual exclusion of the shared variable */
-static pthread_mutex_t __mutex_shared_variable =
+static pthread_mutex_t __control_speed_vars =
     (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
 
-static pthread_mutex_t __mutex_shared_variable1 =
+static pthread_mutex_t __control_oled =
     (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
 
 /* thread id */
-static pthread_t tid = 0;
-static pthread_t tid1 = 0;
+static pthread_t tid_speed_calc = 0;
+static pthread_t tid_time_switch = 0;
 
-static float get_uptime() {
+static inline float get_uptime() {
 	FILE *fp1;
 	float uptime = 0, idletime = 0;
 	if ((fp1 = fopen("/proc/uptime", "r")) != NULL) {
@@ -201,37 +202,38 @@ static float get_uptime() {
 	return uptime;
 }
 
-static void *pth_time_check(void *arg) {
+static void *pth_time_switch(void *arg) {
 	int now;
 	struct st_config *stcfg;
 	stcfg = (struct st_config *)arg;
+	int control_by_me = 0;
 	while (1) {
-		// Work only during specified time periods
 		now = get_current_minitues();
-		pthread_mutex_lock(&__mutex_shared_variable1);
-		{
-			if (stcfg->from != stcfg->to &&
-			    (now < stcfg->from || now >= stcfg->to)) {
-				if (__shared_sleeped == 0) {
-					clearDisplay();
-					Display();
-				}
-				__shared_sleeped = 1;
-			} else {
-				__shared_sleeped = 0;
+		/* During the sleep period,
+		 * other threads are prohibited from controlling the display,
+		 * and the display content is cleared;
+		 * During the non-sleep period,
+		 * release the control right of the display screen.
+		 */
+		if (stcfg->from != stcfg->to &&
+		    (now < stcfg->from || now >= stcfg->to)) {
+			if (control_by_me == 0) {
+				// get oled control
+				pthread_mutex_lock(&__control_oled);
+				control_by_me = 1;
+				clearDisplay();
+				Display();
 			}
+			usleep(TIME_CHECK_INTERVAL_LONG);
+		} else {
+			if (control_by_me == 1) {
+				// release oled control
+				pthread_mutex_unlock(&__control_oled);
+				control_by_me = 0;
+			}
+			usleep(TIME_CHECK_INTERVAL_SHORT);
 		}
-		pthread_mutex_unlock(&__mutex_shared_variable1);
-		usleep(TIME_CHECK_INTERVAL);
 	}
-}
-
-static inline int get_sleep_flag() {
-	int flag;
-	pthread_mutex_lock(&__mutex_shared_variable1);
-	{ flag = __shared_sleeped; }
-	pthread_mutex_unlock(&__mutex_shared_variable1);
-	return flag;
 }
 
 static void *pth_netspeed(char *ifname) {
@@ -283,12 +285,12 @@ static void *pth_netspeed(char *ifname) {
 			    (tx_bytes - last_tx_bytes) / (uptime - last_uptime);
 
 			// write shared variables;
-			pthread_mutex_lock(&__mutex_shared_variable);
+			pthread_mutex_lock(&__control_speed_vars);
 			{
 				__shared_rx_speed = rx_speed;
 				__shared_tx_speed = tx_speed;
 			}
-			pthread_mutex_unlock(&__mutex_shared_variable);
+			pthread_mutex_unlock(&__control_speed_vars);
 
 			last_rx_bytes = rx_bytes;
 			last_tx_bytes = tx_bytes;
@@ -306,18 +308,24 @@ void ALARMhandler(int sig) {
 
 void BreakDeal(int sig) {
 	printf("Recived a KILL signal!\n");
-	if (tid != 0) {
-		pthread_cancel(tid);
-		pthread_join(tid, NULL);
+	if (tid_speed_calc != 0) {
+		pthread_cancel(tid_speed_calc);
+		pthread_join(tid_speed_calc, NULL);
 	}
-	if (tid1 != 0) {
-		pthread_cancel(tid1);
-		pthread_join(tid1, NULL);
+
+	if (tid_time_switch != 0) {
+		pthread_cancel(tid_time_switch);
+		pthread_join(tid_time_switch, NULL);
 	}
+
+	pthread_mutex_destroy(&__control_speed_vars);
+	pthread_mutex_destroy(&__control_oled);
+
 	clearDisplay();
 	usleep(DISPLAY_INTERVAL);
 	Display();
-	exit(0);
+
+	exit(EXIT_SUCCESS);
 }
 
 int main(int argc, char *argv[]) {
@@ -529,7 +537,7 @@ int main(int argc, char *argv[]) {
 	/* Create a network speed calculation thread */
 	if (stcfg->disp_net_speed == 1 &&
 	    strcmp(stcfg->speed_if_name, "") != 0) {
-		pthread_create(&tid, NULL, (void *)pth_netspeed,
+		pthread_create(&tid_speed_calc, NULL, (void *)pth_netspeed,
 			       stcfg->speed_if_name);
 	}
 
@@ -559,7 +567,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	/* Create a timer switch monitoring thread */
-	pthread_create(&tid1, NULL, (void *)pth_time_check, (void *)stcfg);
+	pthread_create(&tid_time_switch, NULL, (void *)pth_time_switch,
+		       (void *)stcfg);
 
 	/* Register the Alarm Handler */
 	signal(SIGALRM, ALARMhandler);
@@ -575,92 +584,151 @@ int main(int argc, char *argv[]) {
 	// draw many lines
 	while (1) {
 		if (effect_sum > 0) {
-			if (get_sleep_flag() == 0 && stcfg->scroll) {
+			if (stcfg->scroll) {
+				// get oled control
+				pthread_mutex_lock(&__control_oled);
 				testscrolltext(stcfg->scroll_text);
 				usleep(DISPLAY_INTERVAL);
 				clearDisplay();
+				// release oled control
+				pthread_mutex_unlock(&__control_oled);
+				usleep(TINY_INTERVAL);
 			}
 
-			if (get_sleep_flag() == 0 && stcfg->draw_line) {
+			if (stcfg->draw_line) {
+				// get oled control
+				pthread_mutex_lock(&__control_oled);
 				testdrawline();
 				usleep(DISPLAY_INTERVAL);
 				clearDisplay();
+				// release oled control
+				pthread_mutex_unlock(&__control_oled);
+				usleep(TINY_INTERVAL);
 			}
 
 			// draw rectangles
-			if (get_sleep_flag() == 0 && stcfg->draw_rect) {
+			if (stcfg->draw_rect) {
+				// get oled control
+				pthread_mutex_lock(&__control_oled);
 				testdrawrect();
 				usleep(DISPLAY_INTERVAL);
 				clearDisplay();
+				// release oled control
+				pthread_mutex_unlock(&__control_oled);
+				usleep(TINY_INTERVAL);
 			}
 
 			// draw multiple rectangles
-			if (get_sleep_flag() == 0 && stcfg->fill_rect) {
+			if (stcfg->fill_rect) {
+				// get oled control
+				pthread_mutex_lock(&__control_oled);
 				testfillrect();
 				usleep(DISPLAY_INTERVAL);
 				clearDisplay();
+				// release oled control
+				pthread_mutex_unlock(&__control_oled);
+				usleep(TINY_INTERVAL);
 			}
 
 			// draw mulitple circles
-			if (get_sleep_flag() == 0 && stcfg->draw_circle) {
+			if (stcfg->draw_circle) {
+				// get oled control
+				pthread_mutex_lock(&__control_oled);
 				testdrawcircle();
 				usleep(DISPLAY_INTERVAL);
 				clearDisplay();
+				// release oled control
+				pthread_mutex_unlock(&__control_oled);
+				usleep(TINY_INTERVAL);
 			}
 
 			// draw a white circle, 10 pixel radius
-			if (get_sleep_flag() == 0 && stcfg->draw_round_circle) {
+			if (stcfg->draw_round_circle) {
+				// get oled control
+				pthread_mutex_lock(&__control_oled);
 				testdrawroundrect();
 				usleep(DISPLAY_INTERVAL);
 				clearDisplay();
+				// release oled control
+				pthread_mutex_unlock(&__control_oled);
+				usleep(TINY_INTERVAL);
 			}
 
 			// Fill the round rectangle
-			if (get_sleep_flag() == 0 && stcfg->fill_round_circle) {
+			if (stcfg->fill_round_circle) {
+				// get oled control
+				pthread_mutex_lock(&__control_oled);
 				testfillroundrect();
 				usleep(DISPLAY_INTERVAL);
 				clearDisplay();
+				// release oled control
+				pthread_mutex_unlock(&__control_oled);
+				usleep(TINY_INTERVAL);
 			}
 
 			// Draw triangles
-			if (get_sleep_flag() == 0 && stcfg->draw_triangle) {
+			if (stcfg->draw_triangle) {
+				// get oled control
+				pthread_mutex_lock(&__control_oled);
 				testdrawtriangle();
 				usleep(DISPLAY_INTERVAL);
 				clearDisplay();
+				// release oled control
+				pthread_mutex_unlock(&__control_oled);
+				usleep(TINY_INTERVAL);
 			}
 			// Fill triangles
-			if (get_sleep_flag() == 0 && stcfg->fill_triangle) {
+			if (stcfg->fill_triangle) {
+				// get oled control
+				pthread_mutex_lock(&__control_oled);
 				testfilltriangle();
 				usleep(DISPLAY_INTERVAL);
 				clearDisplay();
+				// release oled control
+				pthread_mutex_unlock(&__control_oled);
+				usleep(TINY_INTERVAL);
 			}
 
 			// Display miniature bitmap
-			if (get_sleep_flag() == 0 && stcfg->disp_bitmap) {
+			if (stcfg->disp_bitmap) {
+				// get oled control
+				pthread_mutex_lock(&__control_oled);
 				display_bitmap();
 				Display();
 				usleep(DISPLAY_INTERVAL);
+				// release oled control
+				pthread_mutex_unlock(&__control_oled);
+				usleep(TINY_INTERVAL);
 			};
 
 			// Display Inverted image and normalize it back
-			if (get_sleep_flag() == 0 &&
-			    stcfg->disp_invert_normal) {
+			if (stcfg->disp_invert_normal) {
+				// get oled control
+				pthread_mutex_lock(&__control_oled);
 				display_invert_normal();
 				clearDisplay();
 				usleep(DISPLAY_INTERVAL);
 				Display();
+				// release oled control
+				pthread_mutex_unlock(&__control_oled);
+				usleep(TINY_INTERVAL);
 			}
 
 			// Generate Signal after 20 Seconds
 
 			// draw a bitmap icon and 'animate' movement
-			if (get_sleep_flag() == 0 && stcfg->draw_bitmap_eg) {
+			if (stcfg->draw_bitmap_eg) {
 				alarm(10);
 				flag = 0;
+				// get oled control
+				pthread_mutex_lock(&__control_oled);
 				testdrawbitmap_eg();
 				clearDisplay();
 				usleep(DISPLAY_INTERVAL);
 				Display();
+				// release oled control
+				pthread_mutex_unlock(&__control_oled);
+				usleep(TINY_INTERVAL);
 			}
 		}
 
@@ -675,12 +743,9 @@ int main(int argc, char *argv[]) {
 		setTextColor(WHITE);
 
 		for (int i = 1; i < stcfg->interval; i++) {
-			if (get_sleep_flag() == 1) {
-				usleep(DISPLAY_INTERVAL);
-				continue;
-			}
-
-			if (info_sum == 1) {	 // only one item for display
+			// get oled control
+			pthread_mutex_lock(&__control_oled);
+			if (info_sum == 1) {  // only one item for display
 				if (stcfg->disp_date) testdate(CENTER, 8);
 				if (stcfg->disp_ip)
 					testip(CENTER, 8, stcfg->ip_if_name);
@@ -691,13 +756,13 @@ int main(int argc, char *argv[]) {
 				if (stcfg->disp_net_speed) {
 					// read shared variables;
 					pthread_mutex_lock(
-					    &__mutex_shared_variable);
+					    &__control_speed_vars);
 					{
 						rx_speed = __shared_rx_speed;
 						tx_speed = __shared_tx_speed;
 					}
 					pthread_mutex_unlock(
-					    &__mutex_shared_variable);
+					    &__control_speed_vars);
 
 					testnetspeed(SPLIT, 0, rx_speed,
 						     tx_speed);
@@ -705,7 +770,7 @@ int main(int argc, char *argv[]) {
 				Display();
 				usleep(DISPLAY_INTERVAL);
 				clearDisplay();
-			} else if (info_sum == 2) {	// two items for display
+			} else if (info_sum == 2) {  // two items for display
 				if (stcfg->disp_date) {
 					testdate(CENTER,
 						 16 * (stcfg->disp_date - 1));
@@ -734,13 +799,13 @@ int main(int argc, char *argv[]) {
 				if (stcfg->disp_net_speed) {
 					// read shared variables;
 					pthread_mutex_lock(
-					    &__mutex_shared_variable);
+					    &__control_speed_vars);
 					{
 						rx_speed = __shared_rx_speed;
 						tx_speed = __shared_tx_speed;
 					}
 					pthread_mutex_unlock(
-					    &__mutex_shared_variable);
+					    &__control_speed_vars);
 
 					testnetspeed(
 					    MERGE,
@@ -772,7 +837,7 @@ int main(int argc, char *argv[]) {
 					if (stcfg->disp_net_speed) {
 						// read shared variables;
 						pthread_mutex_lock(
-						    &__mutex_shared_variable);
+						    &__control_speed_vars);
 						{
 							rx_speed =
 							    __shared_rx_speed;
@@ -780,7 +845,7 @@ int main(int argc, char *argv[]) {
 							    __shared_tx_speed;
 						}
 						pthread_mutex_unlock(
-						    &__mutex_shared_variable);
+						    &__control_speed_vars);
 
 						testnetspeed(
 						    FULL,
@@ -811,7 +876,7 @@ int main(int argc, char *argv[]) {
 					if (stcfg->disp_net_speed) {
 						// read shared variables;
 						pthread_mutex_lock(
-						    &__mutex_shared_variable);
+						    &__control_speed_vars);
 						{
 							rx_speed =
 							    __shared_rx_speed;
@@ -819,7 +884,7 @@ int main(int argc, char *argv[]) {
 							    __shared_tx_speed;
 						}
 						pthread_mutex_unlock(
-						    &__mutex_shared_variable);
+						    &__control_speed_vars);
 
 						testnetspeed(
 						    FULL,
@@ -835,19 +900,25 @@ int main(int argc, char *argv[]) {
 				Display();
 				usleep(DISPLAY_INTERVAL);
 				clearDisplay();
+				// release oled control
+				pthread_mutex_unlock(&__control_oled);
+				usleep(TINY_INTERVAL);
 			}
 		}  // for
 	}	   // while
 
-	if (tid != 0) {
-		pthread_cancel(tid);
-		pthread_join(tid, NULL);
+	if (tid_speed_calc != 0) {
+		pthread_cancel(tid_speed_calc);
+		pthread_join(tid_speed_calc, NULL);
 	}
 
-	if (tid1 != 0) {
-		pthread_cancel(tid1);
-		pthread_join(tid1, NULL);
+	if (tid_time_switch != 0) {
+		pthread_cancel(tid_time_switch);
+		pthread_join(tid_time_switch, NULL);
 	}
+
+	pthread_mutex_destroy(&__control_speed_vars);
+	pthread_mutex_destroy(&__control_oled);
 
 	clearDisplay();
 	Display();
