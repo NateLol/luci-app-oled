@@ -18,7 +18,7 @@ Enjoy!
 
 **1. Autoswitch|定时开关**
 
-由于夜间oled的显示屏太亮，并且也几乎不会看它，所以应邀提供定时开关的功能，选中autoswitch之后，可以设置**显示**的起始和结束时间。
+由于夜间oled的显示屏太亮，并且也几乎不会看它，所以应邀提供定时开关的功能，选中autoswitch之后，可以设置**显示**的起始和结束时间，在**Linux**下使用时，可通过配置文件把参数`from`和`to`改为需要打开的时间段，参数值是当天的分钟数：**小时 x 60 + 分钟**。
 
 **2. Time|时间**
 
@@ -26,7 +26,7 @@ Enjoy!
 
 **3. IP|IP地址**
 
-显示LAN口的IP地址，记得LAN口不可以去除**桥接**选项，否则失效。由于使用的是`br-lan`，因为不同固件可能会交换`eth0`和`eth1`。
+显示网口的IP地址，默认显示`br-lan`的IP地址，对应参数名是`ipIfName`，允许修改为其它网口。
 
 **4. CPU Temp|CPU温度**
 
@@ -38,12 +38,17 @@ Enjoy!
 
 **6. Network Speed|网速**
 
-提供不同接口的选择，`eth0`和`eth1`,个人可以按需修改。网速单位基准为字节(Byte)而不是一般的位（bit），[MB/s, KB/s, B/s]这样显示的数字能够比较小，不至于过长。
+提供不同接口的选择，个人可以按需修改，对应的参数名是`speedIfName`。网速单位基准为字节(Byte)而不是一般的位（bit），[MB/s, KB/s, B/s]这样显示的数字能够比较小，不至于过长。
 
 **7. Display Interval|显示间隔**
 
 为了延缓oled的光衰，提供屏保服务，每隔设定的时间运行一次屏保程序。
 
+**8. 在Linux下如何使用**
+
+在Linux下使用，请使用静态编译版本 **（make ssd1306）**。把`ssd1306`复制到`/usr/bin`下，把`ssd1306.cfg`复制到`/etc`下，把`ssd1306.service`复制到`/usr/lib/systemd/system`下，用`systemctl enable ssd1306.service`激活服务，用`systemctl start ssd1306.service`启动服务，若中途修改配置文件，用`systemctl reload ssd1306.service`重载服务，用`systemctl stop ssd1306.service`停止服务。
+
+为了延缓oled的光衰，提供屏保服务，每隔设定的时间运行一次屏保程序。
 ---
 ### Screensavers|屏保
 
