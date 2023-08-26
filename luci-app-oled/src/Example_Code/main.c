@@ -29,7 +29,7 @@
 #define DISPLAY_INTERVAL 1000000
 #define TINY_INTERVAL 50000
 #define TIME_CHECK_INTERVAL_SHORT 1000000
-#define TIME_CHECK_INTERVAL_LONG 5000000
+#define TIME_CHECK_INTERVAL_LONG 3000000
 
 struct st_config {
 	unsigned int disp_date;
@@ -267,6 +267,9 @@ static void *pth_display(const void *args) {
 		       stcfg->disp_cpu_freq + stcfg->disp_cpu_temp +
 		       stcfg->disp_net_speed;
 
+	/* Let the main thread work first,
+	 * to ensure the timing is correct.
+	 */
 	usleep(TINY_INTERVAL);
 
 	// draw many lines
@@ -283,7 +286,6 @@ static void *pth_display(const void *args) {
 			clearDisplay();
 			// release oled control
 			pthread_mutex_unlock(&__control_oled);
-			usleep(TINY_INTERVAL);
 		}
 
 		if (stcfg->draw_line) {
@@ -296,7 +298,6 @@ static void *pth_display(const void *args) {
 			clearDisplay();
 			// release oled control
 			pthread_mutex_unlock(&__control_oled);
-			usleep(TINY_INTERVAL);
 		}
 
 		// draw rectangles
@@ -310,7 +311,6 @@ static void *pth_display(const void *args) {
 			clearDisplay();
 			// release oled control
 			pthread_mutex_unlock(&__control_oled);
-			usleep(TINY_INTERVAL);
 		}
 
 		// draw multiple rectangles
@@ -324,7 +324,6 @@ static void *pth_display(const void *args) {
 			clearDisplay();
 			// release oled control
 			pthread_mutex_unlock(&__control_oled);
-			usleep(TINY_INTERVAL);
 		}
 
 		// draw mulitple circles
@@ -338,7 +337,6 @@ static void *pth_display(const void *args) {
 			clearDisplay();
 			// release oled control
 			pthread_mutex_unlock(&__control_oled);
-			usleep(TINY_INTERVAL);
 		}
 
 		// draw a white circle, 10 pixel radius
@@ -352,7 +350,6 @@ static void *pth_display(const void *args) {
 			clearDisplay();
 			// release oled control
 			pthread_mutex_unlock(&__control_oled);
-			usleep(TINY_INTERVAL);
 		}
 
 		// Fill the round rectangle
@@ -366,7 +363,6 @@ static void *pth_display(const void *args) {
 			clearDisplay();
 			// release oled control
 			pthread_mutex_unlock(&__control_oled);
-			usleep(TINY_INTERVAL);
 		}
 
 		// Draw triangles
@@ -380,7 +376,6 @@ static void *pth_display(const void *args) {
 			clearDisplay();
 			// release oled control
 			pthread_mutex_unlock(&__control_oled);
-			usleep(TINY_INTERVAL);
 		}
 		// Fill triangles
 		if (stcfg->fill_triangle) {
@@ -393,7 +388,6 @@ static void *pth_display(const void *args) {
 			clearDisplay();
 			// release oled control
 			pthread_mutex_unlock(&__control_oled);
-			usleep(TINY_INTERVAL);
 		}
 
 		// Display miniature bitmap
@@ -407,7 +401,6 @@ static void *pth_display(const void *args) {
 			usleep(DISPLAY_INTERVAL);
 			// release oled control
 			pthread_mutex_unlock(&__control_oled);
-			usleep(TINY_INTERVAL);
 		};
 
 		// Display Inverted image and normalize it back
@@ -422,7 +415,6 @@ static void *pth_display(const void *args) {
 			Display();
 			// release oled control
 			pthread_mutex_unlock(&__control_oled);
-			usleep(TINY_INTERVAL);
 		}
 
 		// Generate Signal after 20 Seconds
@@ -441,7 +433,6 @@ static void *pth_display(const void *args) {
 			Display();
 			// release oled control
 			pthread_mutex_unlock(&__control_oled);
-			usleep(TINY_INTERVAL);
 		}
 
 		if (info_sum == 0) {
@@ -490,7 +481,6 @@ static void *pth_display(const void *args) {
 				clearDisplay();
 				// release oled control
 				pthread_mutex_unlock(&__control_oled);
-				usleep(TINY_INTERVAL);
 			} else if (info_sum == 2) {  // two items for display
 				if (stcfg->disp_date) {
 					testdate(CENTER,
@@ -544,7 +534,6 @@ static void *pth_display(const void *args) {
 				clearDisplay();
 				// release oled control
 				pthread_mutex_unlock(&__control_oled);
-				usleep(TINY_INTERVAL);
 			} else {  // more than two items for display
 				if (stcfg->disp_date) {
 					testdate(FULL,
@@ -630,7 +619,6 @@ static void *pth_display(const void *args) {
 				clearDisplay();
 				// release oled control
 				pthread_mutex_unlock(&__control_oled);
-				usleep(TINY_INTERVAL);
 			}  // more than two items for display
 		}	   // for
 	}		   // while
@@ -660,7 +648,6 @@ static inline int get_current_minitues() {
 static void time_switch(struct st_config *stcfg) {
 	int now;
 	int control_by_me = 0;
-
 	// draw a single pixel
 	//    drawPixel(0, 1, WHITE);
 	//    Display();
@@ -685,12 +672,22 @@ static void time_switch(struct st_config *stcfg) {
 		if (stcfg->from != stcfg->to &&
 		    (now < stcfg->from || now >= stcfg->to)) {
 			if (control_by_me == 0) {
+				int i;
+				int repeat_clear_times = 3;
+
 				// get oled control
 				pthread_mutex_lock(&__control_oled);
 				control_by_me = 1;
-				clearDisplay();
-				usleep(DISPLAY_INTERVAL);
-				Display();
+
+				/* Sometimes, clearing the screen once cannot be
+				 * completely cleared it, so it is necessary
+				 * to repeat clearing the screen several times.
+				 */
+				for(i = 0; i < repeat_clear_times; i++) {
+					clearDisplay();
+					usleep(DISPLAY_INTERVAL);
+					Display();
+				}
 			}
 			usleep(TIME_CHECK_INTERVAL_LONG);
 		} else {
@@ -966,6 +963,7 @@ int main(int argc, char *argv[]) {
 	clearDisplay();
 	usleep(TINY_INTERVAL);
 	Display();
+	Close_I2C();
 
 	free(stcfg->scroll_text);
 	free(stcfg->ip_if_name);

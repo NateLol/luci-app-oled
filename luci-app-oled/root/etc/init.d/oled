@@ -107,6 +107,9 @@ start_service() {
 	[ "$param" != "" ]  && procd_append_param command --scrollText="$param"
 
 	procd_set_param respawn
+	# oled收到 SIGTERM 信号后，会跑完最后一个显示效果再退出，因此需要一定的等待时间
+	# 否则进程被 SIGKILL 强杀，会导致显示屏不能清空。
+	procd_set_param term_timeout 30 # wait before sending SIGKILL
 	procd_close_instance
 }
 

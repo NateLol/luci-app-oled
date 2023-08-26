@@ -251,3 +251,13 @@ int init_i2c_dev(const char *i2c_path, unsigned char slave_address) {
 
 	return 0;
 }
+
+/****************************************************************
+ * Function Name : Close_I2C
+ * Description   : Close I2C Connect
+ * Returns       : 0 on success, -1 on failure
+ * Params        : non
+ ****************************************************************/
+extern int Close_I2C() {
+	return Close_device(I2C_DEV_2.fd_i2c);
+}
